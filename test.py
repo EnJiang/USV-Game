@@ -12,9 +12,9 @@ class MyUSV(OneStepUSV):
 
   def decisionAlgorithm(self):
     if(self.isEnemy):
-      return self.attackDecisionAlgrithm()
+      return self.attackDecisionAlgorithm()
     else:
-      return self.protectionDecisionAlgrithm()
+      return self.protectionDecisionAlgorithm()
 
   def _euclideanDistance(self, x1, y1, x2, y2):
       '''计算X和Y的欧式距离'''
@@ -25,26 +25,26 @@ class MyUSV(OneStepUSV):
     如果发现目标格子被其它舰艇占用,选择次近的格子;如果全部被占用,保持不动
     (这不见得是什么高明的策略,即是是防守方保持静止,也很有可能使进攻方进入死循环)'''
     targetX, targetY = self.env.targetCoordinate()
-    distanceUp = _euclideanDistance(targetX, targetY, self.x, (self.y - 1))
-    distanceDown = _euclideanDistance(targetX, targetY, self.x, (self.y + 1))
-    distanceLeft = _euclideanDistance(targetX, targetY, (self.x - 1), self.y)
-    distanceRight = _euclideanDistance(targetX, targetY, (self.x + 1), self.y)
-    decisions = [distanceUp, distanceDown, distanceLeft, distanceRight]
-    decisions.sort()
+    distanceUp = self._euclideanDistance(targetX, targetY, self.x, (self.y - 1))
+    distanceDown = self._euclideanDistance(targetX, targetY, self.x, (self.y + 1))
+    distanceLeft = self._euclideanDistance(targetX, targetY, (self.x - 1), self.y)
+    distanceRight = self._euclideanDistance(targetX, targetY, (self.x + 1), self.y)
+    distances = [distanceUp, distanceDown, distanceLeft, distanceRight]
+    distances.sort()
 
     finalDecision = {"stay":True}
 
-    for decision in decisions:
-      if decision==distanceUp:
+    for distance in distances:
+      if distance==distanceUp:
         decisionX, decisionY = self.x, self.y - 1
         angularToBe = 90.0
-      elif decision==distanceDown:
+      elif distance==distanceDown:
         decisionX, decisionY = self.x, self.y + 1
         angularToBe = 270.0
-      elif decision==distanceLeft:
+      elif distance==distanceLeft:
         decisionX, decisionY = self.x - 1, self.y
         angularToBe = 0.0
-      elif decision==distanceRight:
+      elif distance==distanceRight:
         decisionX, decisionY = self.x + 1, self.y
         angularToBe = 180.0
 
@@ -62,7 +62,7 @@ class MyUSV(OneStepUSV):
 
     '''得到敌人的目标位置'''
     enemy = self.env.enemyShips[0]
-    enemyAction = enemy.attackDecisionAlgrithm()
+    enemyAction = enemy.attackDecisionAlgorithm()
     if(enemyAction["stay"]):
       targetX, targetY = enemy.coordinate()
     else:
@@ -86,10 +86,10 @@ class MyUSV(OneStepUSV):
         targetX, targetY = enemyX, enemyY + 1
 
     '''下面套用attackDecisionAlgorithm'''
-    distanceUp = _euclideanDistance(targetX, targetY, self.x, (self.y - 1))
-    distanceDown = _euclideanDistance(targetX, targetY, self.x, (self.y + 1))
-    distanceLeft = _euclideanDistance(targetX, targetY, (self.x - 1), self.y)
-    distanceRight = _euclideanDistance(targetX, targetY, (self.x + 1), self.y)
+    distanceUp = self._euclideanDistance(targetX, targetY, self.x, (self.y - 1))
+    distanceDown = self._euclideanDistance(targetX, targetY, self.x, (self.y + 1))
+    distanceLeft = self._euclideanDistance(targetX, targetY, (self.x - 1), self.y)
+    distanceRight = self._euclideanDistance(targetX, targetY, (self.x + 1), self.y)
     decisions = [distanceUp, distanceDown, distanceLeft, distanceRight]
     decisions.sort()
 

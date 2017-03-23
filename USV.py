@@ -13,7 +13,7 @@ class StaticUSV(object):
     self.direction = 0.0
     self.isEnemy = False
 
-  def decisionAlgrithm(self):
+  def decisionAlgorithm(self):
     '''decisionAlgrithm是指导USV运动的方法,返回一个自定义的action字典'''
     pass
 
@@ -78,7 +78,7 @@ class OneStepUSV(StaticUSV):
     super(OneStepUSV, self).__init__(uid, x, y, env)
     self.speed = 1
 
-  def decisionAlgrithm(self):
+  def decisionAlgorithm(self):
     '''这种USV的action字典有三个参数:1.stay,如果设为True,代表USV决定不行动,后面的参数被忽略;
     2.clockwise,转动方向是否是顺时针;3.angularSpeed角速度.
     如果stay参数为False,USV将会根据clockwise的指示转动angularSpeed度,然后前进一步.注意由于
@@ -86,12 +86,12 @@ class OneStepUSV(StaticUSV):
     exampleAction = {'stay':False,'clockwise':True,'angularSpeed':90.0}
     exampleAction1 = {'stay':True,'clockwise':True,'angularSpeed':0}
     exampleAction2 = {'stay':False,'clockwise':False,'angularSpeed':270.0}
-    raise Exception("请覆盖decisionAlgrithm方法!")
+    raise Exception("请覆盖decisionAlgorithm方法!")
 
   def move(self):
-    action = self.decisionAlgrithm()
+    action = self.decisionAlgorithm()
     if(not action["stay"]):
-      self.updatDirection(action)
+      self.updateDirection(action)
       self.updateCoordinate()
 
   def updateDirection(self, action):
