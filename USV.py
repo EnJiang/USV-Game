@@ -94,7 +94,7 @@ class OneStepUSV(StaticUSV):
       self.updatDirection(action)
       self.updateCoordinate()
 
-  def updatDirection(self, action):
+  def updateDirection(self, action):
     self.angularSpeed = action["angularSpeed"]
     self.turn(action["clockwise"])
 
