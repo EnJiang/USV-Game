@@ -90,22 +90,22 @@ class MyUSV(OneStepUSV):
     distanceDown = self._euclideanDistance(targetX, targetY, self.x, (self.y + 1))
     distanceLeft = self._euclideanDistance(targetX, targetY, (self.x - 1), self.y)
     distanceRight = self._euclideanDistance(targetX, targetY, (self.x + 1), self.y)
-    decisions = [distanceUp, distanceDown, distanceLeft, distanceRight]
-    decisions.sort()
+    distances = [distanceUp, distanceDown, distanceLeft, distanceRight]
+    distances.sort()
 
     finalDecision = {"stay":True}
 
-    for decision in decisions:
-      if decision==distanceUp:
+    for distance in distances:
+      if distance==distanceUp:
         decisionX, decisionY = self.x, self.y - 1
         angularToBe = 90.0
-      elif decision==distanceDown:
+      elif distance==distanceDown:
         decisionX, decisionY = self.x, self.y + 1
         angularToBe = 270.0
-      elif decision==distanceLeft:
+      elif distance==distanceLeft:
         decisionX, decisionY = self.x - 1, self.y
         angularToBe = 0.0
-      elif decision==distanceRight:
+      elif distance==distanceRight:
         decisionX, decisionY = self.x + 1, self.y
         angularToBe = 180.0
 
