@@ -24,8 +24,8 @@ class StaticUSV(object):
   def isDecisionLegal(self, decisionX, decisionY):
     '''判断USV决定要去的位置是否合法;在这个基本的函数里,所有舰艇不得走出地图范围,不得走到
     其它舰艇已经占用的位置;友军舰艇不得走到被保护的目标点.'''
-    weight, height = self.env.weight, self.env.height
-    if(decisionX < 0 or decisionY < 0 or decisionX > weight - 1 or decisionY > height - 1):
+    width, height = self.env.width, self.env.height
+    if(decisionX < 0 or decisionY < 0 or decisionX > width - 1 or decisionY > height - 1):
       return False
 
     occupied = False

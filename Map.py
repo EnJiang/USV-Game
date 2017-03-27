@@ -45,3 +45,11 @@ class BasicMap(object):
       _str_ += '\n'
 
     return _str_
+
+
+class LargeMap(BasicMap):
+  """一个较大的地图,用大型矩阵来描绘一个伪二维连续平面
+  每次USV移动之后,LargeMap会对USV的位置进行校正,将其浮点区域去掉并
+  定位到最近的那一个矩阵点"""
+  def __init__(self, width, height):
+    super(LargeMap, self).__init__(width, height)
