@@ -130,6 +130,12 @@ class OneStepUSV(BasicPlaneUSV):
         example_action1 = Action(True, False, 0.0)
         raise Exception("请覆盖decision_algorithm方法!")
 
+    def move(self):
+        action = self.decision_algorithm()
+        if(not action.stay):
+            self.update_direction(action)
+            self.update_coordinate()
+
     def update_coordinate(self):
         if(self.direction == 0.0):
             self.x -= self.speed
