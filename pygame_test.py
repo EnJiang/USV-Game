@@ -1,9 +1,8 @@
 #coding:utf-8
 
-from game import GUIGame
+from game import BasicGUIGame
 from map_ import BasicMap
 from usv import OneStepUSV
-
 
 class MyUSV(OneStepUSV):
   '''一个策略简单的USV,派生自OneStepUSV'''
@@ -25,21 +24,21 @@ class MyUSV(OneStepUSV):
     如果发现目标格子被其它舰艇占用,选择次近的格子;如果全部被占用,保持不动
     (这不见得是什么高明的策略,即是是防守方保持静止,也很有可能使进攻方进入死循环)'''
     target_x, target_y = self.env.target_coordinate()
-    distance_up = self.euclidean_distance(target_x, target_y, self.x, (self.y - 1))
-    distance_down = self.euclidean_distance(target_x, target_y, self.x, (self.y + 1))
+    distance_up = self.euclidean_distance(target_x, target_y, self.x, (self.y + 1))
+    distance_down = self.euclidean_distance(target_x, target_y, self.x, (self.y - 1))
     distance_left = self.euclidean_distance(target_x, target_y, (self.x - 1), self.y)
     distance_right = self.euclidean_distance(target_x, target_y, (self.x + 1), self.y)
     distances = [distance_up, distance_down, distance_left, distance_right]
     distances.sort()
 
-    final_decision = {"stay":True}
+    final_decision = {"stay":True, "clockwise": True, "angular_speed": 0.0}
 
     for distance in distances:
       if distance==distance_up:
-        decision_x, decision_y = self.x, self.y - 1
+        decision_x, decision_y = self.x, self.y + 1
         angular_to_be = 90.0
       elif distance==distance_down:
-        decision_x, decision_y = self.x, self.y + 1
+        decision_x, decision_y = self.x, self.y - 1
         angular_to_be = 270.0
       elif distance==distance_left:
         decision_x, decision_y = self.x - 1, self.y
@@ -54,7 +53,7 @@ class MyUSV(OneStepUSV):
           final_decision["angular_speed"] = abs(angular_to_be - self.direction)
           break
 
-    return final_decision
+    return self.action_class(final_decision["stay"], final_decision["clockwise"], final_decision["angular_speed"])
 
   def protection_decision_algorithm(self):
     '''试图出现在进攻方想要出现的那一个格子上,更具体的说,以进攻方的目标格子为"目标",实行进攻方的策略.
@@ -63,15 +62,15 @@ class MyUSV(OneStepUSV):
     '''得到敌人的目标位置'''
     enemy = self.env.enemy_ships[0]
     enemy_action = enemy.attack_decision_algorithm()
-    if(enemy_action["stay"]):
+    if(enemy_action.stay):
       target_x, target_y = enemy.coordinate()
     else:
-      if(enemy_action["clockwise"]):
-        enemyDirection = enemy.direction + enemy_action["angular_speed"]
+      if(enemy_action.clockwise):
+        enemyDirection = enemy.direction + enemy_action.angular_speed
         if(enemyDirection >= 360):
           enemyDirection -= 360
       else:
-        enemyDirection = enemy.direction - enemy_action["angular_speed"]
+        enemyDirection = enemy.direction - enemy_action.angular_speed
         if(enemyDirection < 0):
           enemyDirection += 360
 
@@ -79,28 +78,28 @@ class MyUSV(OneStepUSV):
       if(enemyDirection==0.0):
         target_x, target_y = enemy_x - 1, enemy_y
       if(enemyDirection==90.0):
-        target_x, target_y = enemy_x, enemy_y - 1
+        target_x, target_y = enemy_x, enemy_y + 1
       if(enemyDirection==180.0):
         target_x, target_y = enemy_x + 1, enemy_y
       if(enemyDirection==270):
-        target_x, target_y = enemy_x, enemy_y + 1
+        target_x, target_y = enemy_x, enemy_y - 1
 
     '''下面套用attack_decision_algorithm'''
-    distance_up = self.euclidean_distance(target_x, target_y, self.x, (self.y - 1))
-    distance_down = self.euclidean_distance(target_x, target_y, self.x, (self.y + 1))
+    distance_up = self.euclidean_distance(target_x, target_y, self.x, (self.y + 1))
+    distance_down = self.euclidean_distance(target_x, target_y, self.x, (self.y - 1))
     distance_left = self.euclidean_distance(target_x, target_y, (self.x - 1), self.y)
     distance_right = self.euclidean_distance(target_x, target_y, (self.x + 1), self.y)
     distances = [distance_up, distance_down, distance_left, distance_right]
     distances.sort()
 
-    final_decision = {"stay":True}
+    final_decision = {"stay":True, "clockwise": True, "angular_speed": 0.0}
 
     for distance in distances:
       if distance==distance_up:
-        decision_x, decision_y = self.x, self.y - 1
+        decision_x, decision_y = self.x, self.y + 1
         angular_to_be = 90.0
       elif distance==distance_down:
-        decision_x, decision_y = self.x, self.y + 1
+        decision_x, decision_y = self.x, self.y - 1
         angular_to_be = 270.0
       elif distance==distance_left:
         decision_x, decision_y = self.x - 1, self.y
@@ -115,7 +114,7 @@ class MyUSV(OneStepUSV):
           final_decision["angular_speed"] = abs(angular_to_be - self.direction)
           break
 
-    return final_decision
+    return self.action_class(final_decision["stay"], final_decision["clockwise"], final_decision["angular_speed"])
 
 
 if __name__ == '__main__':
@@ -154,6 +153,6 @@ if __name__ == '__main__':
     test_map.add_ship(test_enemy_ship)
     # print test_map
 
-    game = GUIGame()
+    game = BasicGUIGame()
     game.set_map(test_map)
     game.start()

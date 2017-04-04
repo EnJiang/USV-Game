@@ -30,6 +30,9 @@ class BasicMap(object):
         self.ships.append(ship)
 
     def __str__(self):
+        '''地图里面为了符合人的习惯,定整个矩阵的左下角为(0,0), x轴负方向为0°, y轴正方形为90°
+        和计算机矩阵左上角为(0,0)的习惯稍微不同,故x和y是反过来的,镜像对称'''
+
         _str_ = ""
 
         matrix = [['~' for i in range(self.width)] for j in range(self.height)]
@@ -49,10 +52,13 @@ class BasicMap(object):
         return _str_
 
 
-class LargeMap(BasicMap):
+class MatrixMap(BasicMap):
     """一个较大的地图,用大型矩阵来描绘一个伪二维连续平面
-    每次USV移动之后,LargeMap会对USV的位置进行校正,将其浮点区域去掉并
-    定位到最近的那一个矩阵点"""
+    成员属性中的USV的位置仍为浮点数, 但是提供一个api接口用于输出位置矩阵
+    此时USV的位置将被定位到最近的那个点位上"""
 
     def __init__(self, width, height):
-        super(LargeMap, self).__init__(width, height)
+        super(MatrixMap, self).__init__(width, height)
+
+    def env_matrix(self):
+        pass
