@@ -74,6 +74,13 @@ class BasicMap(object):
         return strlist
 
 
+    def env_matrix(self):
+        env_np = np.zeros((self.width,self.height))
+        for ship in self.ships:
+            ship_x, ship_y = ship.coordinate()
+            env_np[ship_x][ship_y] = 1
+        env_np[self.target_x][self.target_y] = 1
+        return env_np
 
 
 

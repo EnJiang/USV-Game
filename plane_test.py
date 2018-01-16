@@ -119,7 +119,7 @@ class MyUSV(OneStepUSV):
 
 
     def recordenv(self):
-        curenv = self.env
+        curenv = self.env.env_matrix()
         return curenv
 
     def recordaction(self):
