@@ -105,7 +105,7 @@ class BasicPlaneUSV(StaticUSV):
     def update_speed(self, action):
         self.speed = action.speed
 
-    def update_coordinate(self):
+    def update_coordinate(self):    #x轴负方向是0度，y正方向是90度，所以如下计算
         self.x -= cos(pi * self.direction / 180) * self.speed
         self.y += sin(pi * self.direction / 180) * self.speed
 
@@ -132,20 +132,31 @@ class OneStepUSV(BasicPlaneUSV):
 
     def move(self):
         action = self.decision_algorithm()
+        '''print('USV中的action',action)'''
         if(not action.stay):
             self.update_direction(action)
             self.update_coordinate()
+            #print('ttttttttttttttttttt usv里面的函数')
+            #print(self.env.str2())
 
-    def update_coordinate(self):
-        if(self.direction == 0.0):
+    def update_coordinate(self):     #左上角是（0，0）
+
+        #print('USV中位置更新之前：',self.x,self.y)
+        #print(self.direction)
+        if(self.direction == 0.0):       #向上移动一格，将direct置为0度
             self.x -= self.speed
-        elif(self.direction == 90.0):
+        elif(self.direction == 90.0):    #向右移动一格，将direct置为90度
             self.y += self.speed
-        elif(self.direction == 180.0):
+        elif(self.direction == 180.0):   #向下移动一格，将direct置为180度
             self.x += self.speed
-        elif(self.direction == 270.0):
+        elif(self.direction == 270.0):   #向左移动一格，将direct置为270度
             self.y -= self.speed
         else:
             raise Exception(
                 "OneStepUSV的direction属性应该是正交角度,然而,得到了 %f 度" % self.direction)
+        #print('USV中位置更新之后：', self.x, self.y)
         # print "我是%d号船,我现在走到了(%f,%f)"%(self.id,self.x,self.y)
+
+
+    # def update_direction(self, action):    #这里的更新方向是从原始方向直接变为当前方向，无转动，所以action中只需stay和angular_speed两个属性，clockwise没必要
+    #     self.direction = action.angular_speed

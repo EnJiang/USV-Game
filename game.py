@@ -20,7 +20,7 @@ class BasicGame(object):
         for ship in self.map.ships:
             ship.move()
         self.check_target()
-        print self.map
+        #print (self.map.str2())
 
     def check_target(self):
         target_x, target_y = self.map.target_coordinate()
@@ -35,10 +35,11 @@ class BasicGame(object):
     def start(self):
         while not self.is_game_over():
             self.update()
-            print '----------------------------------------------------------------------------------------'
-            print "press any key to continue"
-            raw_input()
-        print "you lost!"
+            print ('----------------------------------------------------------------------------------------')
+            print ("press any key to continue")
+            #raw_input()
+            input()
+        print ("you lost!")
 
 
 class BasicGUIGame(BasicGame):

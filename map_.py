@@ -1,6 +1,7 @@
 # coding:utf-8
 
 import copy
+import numpy as np
 
 
 class BasicMap(object):
@@ -50,6 +51,30 @@ class BasicMap(object):
             _str_ += '\n'
 
         return _str_
+
+    def str2(self):
+
+        matrix = [['.' for i in range(self.width)] for j in range(self.height)]
+        matrix[self.target_x][self.target_y] = 'E'   #A*中的终点目标end
+        for ship in self.ships:
+            ship_x, ship_y = ship.coordinate()
+            if(ship.is_enemy):
+                matrix[ship_x][ship_y] = '#'    #A*中的障碍物区域#
+            else:
+                matrix[ship_x][ship_y] = 'S'    #A*中的起始点start
+
+
+        strlist = []
+        for i in range(self.width):
+            temprow = ''
+            for j in range(self.height):
+                temprow = temprow + matrix[i][j]
+            strlist.append(temprow)
+
+        return strlist
+
+
+
 
 
 class MatrixMap(BasicMap):
