@@ -40,7 +40,7 @@ Opengym AI中的概念，定义了一组agent活动的环境。这个类主要�
 +  w.reset()：重置整个世界 <br>
 
 ### 系统构架
-从系统功能上来说，首先新建一个策略对象和一个世界对象，假设是单步的：w = OneStepWorld(p), 这时构造函数利用传进来的Policy类（注意传进来的不是一个Policy对象的实例）生成一个policy对象，基本上就是self.policy = Policy(self) <br>
+从系统功能上来说，首先新建一个策略对象和一个世界对象，假设是单步的：w = OneStepWorld(Policy), 这时构造函数利用传进来的Policy类（注意传进来的不是一个Policy对象的实例）生成一个policy对象，基本上就是self.policy = Policy(self) <br>
 这时候world里面已经有了一个policy对象和一个agent的list **当前的版本中，这个list的长度总为1（只有一个agent）** <br>
 新建一个世界env = Env(w) <br>
 开始主循环： <br>
