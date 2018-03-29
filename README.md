@@ -23,8 +23,8 @@ Opengym AI中的概念，定义了一组agent活动的环境。这个类主要�
 + p = Policy(world)
 + action = p.action(obs)：接收一个可行的动作空间observation，返回一个合法的action
 + p.learn(memory)：通过一局记忆去学习
-+ p.save(filename|file obj)：保存策略
-这一部分由算法组完成
++ p.save(filename|file obj)：保存策略 <br>
+这一部分由算法组完成 <br>
 
 3. World <br>
 对整个无人艇世界的包装，可以包装一个已经实现的无人艇游戏来实现。实际上这个东西就是一个Environment，这个类是模拟组和算法组的接口。另外，这个类其实是整合了maddpg中的Scenario和World对象，因为我觉得它设计两个类是多余的。注意，这里写的是基类，会有派生，比如说一次走一步的就可以有个OneStepWorld，离散的可以有PlaneWorld等等……主要函数和成员对象有：
