@@ -1,6 +1,3 @@
-# 由于换用其他引擎，本repo废弃。
-
-
 # USV-Game
 一个简单的无人艇包围游戏
 
@@ -52,11 +49,11 @@ Opengym AI中的概念，定义了一组agent活动的环境。这个类主要�
 2.4 return w.decide()
 3. obs_n, reward_n, done_n, info_n = env.step(action_n) <br>
 3.1 内部发生了return w.step(action_n)
-3. 如果sum(done_n) == 0(agent全为结束状态), 去5
-4. 否则，回到2
-5. 这时候游戏已经结束，env的memory中记忆了一系列的obs和reward, 调用w.p.learn(memory)来学习
-6. 如果优化达到最优，整个训练结束，w.p.save()
-7. 否则，env.reset(),回到1<br>
+4. 如果sum(done_n) == 0(agent全为结束状态), 去6
+5. 否则，回到2
+6. 这时候游戏已经结束，env的memory中记忆了一系列的obs和reward, 调用w.p.learn(memory)来学习
+7. 如果优化达到最优，整个训练结束，w.p.save()
+8. 否则，env.reset(),回到1<br>
 <br>
 
 从代码实现上来说，Policy和Environment为算法，在上层，再往上的实现和模拟组无关；World为模拟，在下层，再下层的实现和算法组无关
