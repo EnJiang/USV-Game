@@ -43,8 +43,8 @@ Opengym AI中的概念，定义了一组agent活动的环境。这个类主要�
 开始主循环： <br>
 1. obs_n = env.observe() <br>
 1.1 内部发生了return w.observe()
-2. action_n = env.decide() <br>
-2.2 内部发生了 w.decide() <br>
+2. action_n = env.decide(obs_n) <br>
+2.2 内部发生了 w.decide(obs_n) <br>
 2.3 在w.decide()中，反复调用action = p.action(obs_n[i], f[i])来生成动作, 这里，f[i]是为了指明以后我们可能会使用多agent，那么policy对象需要知道是在为哪个对象做决定，暂时可以是None <br>
 2.4 return w.decide()
 3. obs_n, reward_n, done_n, info_n = env.step(action_n) <br>
