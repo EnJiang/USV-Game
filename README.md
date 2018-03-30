@@ -59,7 +59,7 @@ Opengym AI中的概念，定义了一组agent活动的环境。这个类主要�
 从代码实现上来说，Policy和Environment为算法，在上层，再往上的实现和模拟组无关；World为模拟，在下层，再下层的实现和算法组无关
 
 ### TODO List
-- [ ] Environment的实现
+- [x] Environment的实现
 - [ ] Policy的实现
 - [ ] OneStepWorld的实现
 - [ ] 第一次整系统对接
