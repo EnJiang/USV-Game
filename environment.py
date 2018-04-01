@@ -20,7 +20,7 @@ class OneStepEnv(gym.Env):
 
     def reset(self):
         # reset world
-        self.world.reset()
+        return self.world.reset()
 
     # render environment
     def render(self):
@@ -35,3 +35,8 @@ class OneStepEnv(gym.Env):
 class TestEnv(OneStepEnv):
     def __init__(self, world):
         super().__init__(world)
+
+class OnePlayerOneStepEnv(OneStepEnv):
+    def step(self, action_n):
+        obs_n, reward_n, done_n, info_n = self.world.step(action_n)
+        return obs_n[0], reward_n[0], done_n[0], info_n[0]

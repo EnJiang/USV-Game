@@ -96,13 +96,11 @@ class MyUSV(OneStepUSV):
             direct = 0.0
 
 
-
-
         Action = self.action_class
 
         # 这里要根据A*算法进行修改，只获取走一步，
         next_action = Action(False, True, direct)
-        print('使用A*算法的下一步：',next_action)
+        # print('使用A*算法的下一步：',next_action)
 
         return next_action
 
@@ -126,9 +124,6 @@ class MyUSV(OneStepUSV):
         curaction = self.decision_algorithm()
         return curaction
 
-
-
-
 class MyGame(BasicGame):
     def __init__(self):
         super(MyGame, self).__init__()
@@ -149,20 +144,24 @@ class MyGame(BasicGame):
     #     print(self.map.str2())
 
     def update(self):
-        print('update_之前：输出ma.str2()函数的地图形式：：')
-        print(self.map.str2())
-        for ship in self.map.friendly_ships:
-            #if ship.uid == 0: recenv = ship.recordenv()
-            if not ship.is_enemy: recenv = ship.recordenv()
-            # if ship.uid == 0: recaction = ship.recordaction()
-            if not ship.is_enemy: recaction = ship.recordaction()
-            ship.move()
+        # print('update_之前：输出ma.str2()函数的地图形式：：')
+        # print(self.map.str2())
+        try:
+            for ship in self.map.friendly_ships:
+                #if ship.uid == 0: recenv = ship.recordenv()
+                if not ship.is_enemy: recenv = ship.recordenv()
+                # if ship.uid == 0: recaction = ship.recordaction()
+                if not ship.is_enemy: recaction = ship.recordaction()
+                ship.move()
+                self.recordlist.append((recenv, recaction))
+                self.check_target()
+                self.check_obstacle()
+        except IndexError as e:
+                self.is_target_safe = False
+                self.arriveObstacle = True
 
-        self.recordlist.append((recenv,recaction))
-        self.check_target()
-        self.check_obstacle()
-        print('update_之后：输出ma.str2()函数的地图形式：：')
-        print(self.map.str2())
+        # print('update_之后：输出ma.str2()函数的地图形式：：')
+        # print(self.map.str2())
 
 
     def check_target(self):
@@ -170,8 +169,8 @@ class MyGame(BasicGame):
         for ship in self.map.friendly_ships:
             ship_x, ship_y = ship.coordinate()
             if(ship_x == target_x and ship_y == target_y):
-                self.is_target_safe = False
-                self.arriveTarget = 1
+                self.is_target_safe = True
+                self.arriveTarget = True
 
 
     def check_obstacle(self):
@@ -181,7 +180,7 @@ class MyGame(BasicGame):
                 obstacle_x, obstacle_y = obstacle.coordinate()
                 if(ship_x == obstacle_x and ship_y == obstacle_y):
                     self.is_target_safe = False
-                    self.arriveObstacle = 1
+                    self.arriveObstacle = True
 
 
     def is_game_over(self):
@@ -193,7 +192,8 @@ class MyGame(BasicGame):
             #print('game-start-update前的地图形式：')
             #print(self.map.str2())
             self.update()
-            print('\n决策链（当前环境env + 采取动作action）',self.recordlist)
+            # print('\n决策链（当前环境env + 采取动作action）',self.recordlist)
+            print(self.map.env_matrix())
             print ('----------------------------------------------------------------------------------------')
             print ("press any key to continue")
             #raw_input()
