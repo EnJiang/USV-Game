@@ -32,20 +32,20 @@ class DQNAgent:
     def __init__(self, state_size, action_size):
         self.state_size = state_size
         self.action_size = action_size
-        self.memory = deque(maxlen=20000)
+        self.memory = deque(maxlen=200000)
         self.gamma = 0.95    # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.9999
+        self.epsilon_decay = 0.9998
         self.learning_rate = 0.001
         self.model = self._build_model()
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = Sequential()
-        # model.add(Conv2D(2, (3, 3), input_shape=(
-            # 1, 10, 10), activation='relu', data_format="channels_first"))
-        # model.add(Flatten())
+        model.add(Conv2D(32, (3, 3), input_shape=(
+            1, 10, 10), activation='relu', data_format="channels_first"))
+        model.add(Flatten())
         model.add(Dense(128, activation='relu', input_dim=100))
         model.add(Dense(64, activation='relu'))
         model.add(Dense(32, activation='relu'))
@@ -81,7 +81,7 @@ class DQNAgent:
             target_f = self.model.predict(state)
             target_f[0][action] = target
         
-            x.append(state.reshape(100))
+            x.append(state.reshape(1, 10, 10))
             y.append(target_f.reshape(4))
 
         x = np.array(x)
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     for e in range(EPISODES):
         state = env.reset()
         # state = np.reshape(state, [1, state_size])
-        state = np.reshape(state, [1, 100])
+        state = np.reshape(state, [1, 1, 10, 10])
 
         s = 0
         t = 0
@@ -128,7 +128,7 @@ if __name__ == "__main__":
             s += reward
             t += 1
             # next_state = np.reshape(next_state, [1, state_size])
-            next_state = np.reshape(next_state, [1, 100])
+            next_state = np.reshape(next_state, [1, 1, 10, 10])
             agent.remember(state, action, reward, next_state, done)
             state = next_state
             if done:
