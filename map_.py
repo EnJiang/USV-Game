@@ -76,10 +76,15 @@ class BasicMap(object):
 
     def env_matrix(self):
         env_np = np.zeros((self.width,self.height))
-        for ship in self.ships:
+        for ship in self.friendly_ships:
             ship_x, ship_y = ship.coordinate()
-            env_np[ship_x][ship_y] = ship.id + 3
-        env_np[self.target_x][self.target_y] = 100
+            env_np[ship_x][ship_y] = 1
+
+        for ship in self.enemy_ships:
+            ship_x, ship_y = ship.coordinate()
+            env_np[ship_x][ship_y] = -1
+            
+        env_np[self.target_x][self.target_y] = 0
         return env_np
 
 

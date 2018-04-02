@@ -36,7 +36,7 @@ class DQNAgent:
         self.gamma = 0.95    # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.9998
+        self.epsilon_decay = 0.99985
         self.learning_rate = 0.001
         self.model = self._build_model()
 
@@ -44,22 +44,27 @@ class DQNAgent:
         # Neural Net for Deep-Q learning Model
         model = Sequential()
         model.add(Conv2D(32, (3, 3), input_shape=(
-            1, 10, 10), activation='relu', data_format="channels_first"))
+            1, 10, 10), activation='selu', data_format="channels_first"))
         model.add(Flatten())
-        model.add(Dense(128, activation='relu', input_dim=100))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(32, activation='relu'))
-        model.add(Dense(self.action_size, activation='linear'))
-        model.compile(loss='mse',
+        model.add(Dense(512, activation='selu'))
+        model.add(Dense(64, activation='selu'))
+        model.add(Dense(32, activation='selu'))
+        model.add(Dense(self.action_size, activation='sigmoid'))
+        model.compile(loss='categorical_crossentropy',
                       optimizer=Adam(lr=self.learning_rate))
+        model.summary()
+        sleep(2)
         return model
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
-    def act(self, state):
+    def act(self, state, guide_action):
         if np.random.rand() <= self.epsilon:
-            return random.randrange(self.action_size)
+            if np.random.rand() <= 0.2 or guide_action is None:
+                return random.randrange(self.action_size)
+            else:
+                return guide_action
         act_values = self.model.predict(state)
         # exit()
         return np.argmax(act_values[0])  # returns action
@@ -121,9 +126,15 @@ if __name__ == "__main__":
         s = 0
         t = 0
         for time in range(500):
-            action = agent.act(state)
+            try:
+                a_star_action = env.world.policy_agents[0].finda()
+                a_star_action_i = env.world.action_space.index(a_star_action)
+            except:
+                a_star_action_i = None
+
+            action = agent.act(state, a_star_action_i)
             # print(action)
-            next_state, reward, done, _ = env.step([action])
+            next_state, reward, done, _ = env.step([action], time)
             # reward = reward if not done else -100
             s += reward
             t += 1
@@ -132,9 +143,12 @@ if __name__ == "__main__":
             agent.remember(state, action, reward, next_state, done)
             state = next_state
             if done:
-                print("episode: {}/{}, score: {}, e: {:.2}, end_r: {}"
-                      .format(e, EPISODES, s / t, agent.epsilon, reward))
+                print("episode: {}/{}, score: {}, e: {:.2}, end_r: {}, path_len: {}"
+                      .format(e, EPISODES, s / t, agent.epsilon, reward, time + 1))
                 break
                 
-        if len(agent.memory) > batch_size:
+        if len(agent.memory) > 100000:
             agent.replay(batch_size)
+
+    if e % 3000 == 0 and e > 0:
+        agent.save("%d.ml" % e)

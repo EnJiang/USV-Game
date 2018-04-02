@@ -154,26 +154,35 @@ class OneStepWorld(World):
         return [self.policy.action(self.observation_space)]
         # return self.observation_space[]
 
-    def step(self, action_n):
+    def step(self, action_n, time):
         action_i = action_n[0]  # as there is only one agent
         actor = self.policy_agents[0]
         actor.last_action = self.action_space[action_i]
         self.game.update()
 
         x, y = actor.coordinate()
-        distance = 100 - ((9 - x) ** 2 + (9 - y) ** 2) / 161 * 100
+        distance_reward = 100 - ((9 - x) ** 2 + (9 - y) ** 2) / 161 * 100
 
+        if x < 0 or y < 0 or x > 9 or y > 9:
+            if x < 0:
+                x = 0
+            if x > 9:
+                x = 9
+            if y < 0:
+                y = 0
+            if y > 0:
+                y = 9
+            actor.x = x
+            actor.y = y
+            return [self.game.map.env_matrix()], [-150], [False], ["Nothing"]
 
-        try:
-            if self.game.arriveTarget:
-                return [self.game.map.env_matrix()], [100000], [True], ["Nothing"]
+        if self.game.arriveTarget:
+            return [self.game.map.env_matrix()], [300], [True], ["Nothing"]
 
-            if self.game.arriveObstacle:
-                return [self.game.map.env_matrix()], [-100], [True], ["Nothing"]
+        if self.game.arriveObstacle:
+            return [self.game.map.env_matrix()], [-300], [True], ["Nothing"]
 
-            return [self.game.map.env_matrix()], [distance], [False], ["Nothing"]
-        except:
-            return [[0 for _ in range(100)]], [-100], [True], ["Nothing"]
+        return [self.game.map.env_matrix()], [distance_reward - time], [False], ["Nothing"]
 
     def reset(self):
         # reset world
