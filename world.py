@@ -161,17 +161,17 @@ class OneStepWorld(World):
         self.game.update()
 
         x, y = actor.coordinate()
-        distance_reward = 100 - ((9 - x) ** 2 + (9 - y) ** 2) / 161 * 100
+        distance_reward = 100 - ((self.game.map.target_coordinate()[0] - x) ** 2 + (self.game.map.target_coordinate()[0] - y) ** 2) / (self.game.map.target_coordinate()[0]**2 + self.game.map.target_coordinate()[1]**2) * 100
 
-        if x < 0 or y < 0 or x > 9 or y > 9:
+        if x < 0 or y < 0 or x > self.game.map.target_coordinate()[0] or y > self.game.map.target_coordinate()[1]:
             if x < 0:
                 x = 0
-            if x > 9:
-                x = 9
+            if x > self.game.map.target_coordinate()[0]:
+                x = self.game.map.target_coordinate()[0]
             if y < 0:
                 y = 0
-            if y > 0:
-                y = 9
+            if y > self.game.map.target_coordinate()[1]:
+                y = self.game.map.target_coordinate()[1]
             actor.x = x
             actor.y = y
             return [self.game.map.env_matrix()], [-150], [False], ["Nothing"]

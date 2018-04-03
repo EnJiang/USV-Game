@@ -2,7 +2,8 @@
 
 import pygame
 from pygame.locals import *
-
+import copy
+from collections import namedtuple
 from time import sleep
 
 
@@ -40,6 +41,87 @@ class BasicGame(object):
             #raw_input()
             input()
         print ("you lost!")
+
+
+
+
+
+
+class MyGame(BasicGame):
+    def __init__(self):
+        super(MyGame, self).__init__()
+        self.recordlist = []
+        self.arriveTarget = 0
+        self.arriveObstacle = 0
+
+
+    def update(self):
+        # print('update_之前：输出ma.str2()函数的地图形式：：')
+        # print(self.map.str2())
+
+        try:
+            for ship in self.map.friendly_ships:
+                #if ship.uid == 0: recenv = ship.recordenv()
+                if not ship.is_enemy: recenv = ship.recordenv()
+                # if ship.uid == 0: recaction = ship.recordaction()
+                if not ship.is_enemy: recaction = ship.recordaction()
+                ship.move()
+                self.recordlist.append((recenv, recaction))
+                self.check_target()
+                self.check_obstacle()
+
+            #这里添加enemy_ships的随机变动：上下左右或是原地（在USV.py中添加moverandom()方法）
+            for ship in self.map.enemy_ships:
+                ship.moverandom()
+
+
+        except IndexError as e:
+                self.is_target_safe = False
+                self.arriveObstacle = True
+
+        # print('update_之后：输出ma.str2()函数的地图形式：：')
+        # print(self.map.str2())
+
+
+    def check_target(self):
+        target_x, target_y = self.map.target_coordinate()
+        for ship in self.map.friendly_ships:
+            ship_x, ship_y = ship.coordinate()
+            if(ship_x == target_x and ship_y == target_y):
+                self.is_target_safe = True
+                self.arriveTarget = True
+
+
+    def check_obstacle(self):
+        for ship in self.map.friendly_ships:
+            ship_x, ship_y = ship.coordinate()
+            for obstacle in self.map.enemy_ships:
+                obstacle_x, obstacle_y = obstacle.coordinate()
+                if(ship_x == obstacle_x and ship_y == obstacle_y):
+                    self.is_target_safe = False
+                    self.arriveObstacle = True
+
+
+    def is_game_over(self):
+        return not self.is_target_safe
+
+
+    def start(self):
+        while not self.is_game_over():
+            #print('game-start-update前的地图形式：');print(self.map.str2())
+            self.update()
+            # print('\n决策链（当前环境env + 采取动作action）',self.recordlist)
+            print(self.map.env_matrix())
+            print ('----------------------------------------------------------------------------------------')
+            #print ("press any key to continue");input()
+        print ("game over!")
+        print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
+        print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
+
+
+
+
+
 
 
 class BasicGUIGame(BasicGame):

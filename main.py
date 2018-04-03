@@ -66,7 +66,7 @@ class DQNAgent:
 
     def act(self, state, guide_action):
         if np.random.rand() <= self.epsilon:
-            if np.random.rand() <= 0.2 or guide_action is None:
+            if np.random.rand() <= 0.3 or guide_action is None:
                 return random.randrange(self.action_size)
             else:
                 return guide_action
