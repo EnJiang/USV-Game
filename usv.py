@@ -2,6 +2,8 @@
 
 from collections import namedtuple
 from math import sin, cos, pi
+from implementation import *
+import random
 
 class StaticUSV(object):
     """一个静态的USV类,move方法将会留空,这表示此类USV不可行动"""
@@ -75,6 +77,12 @@ class StaticUSV(object):
         self.is_enemy = False
 
 
+
+
+
+
+
+
 class BasicPlaneUSV(StaticUSV):
     """基本平面USV, 这个USV可以在瞬间改变自己的角速度和速度, 转动后在对应方向上走动一帧时间*速度的距离"""
 
@@ -136,8 +144,39 @@ class OneStepUSV(BasicPlaneUSV):
         if(not action.stay):
             self.update_direction(action)
             self.update_coordinate()
-            #print('ttttttttttttttttttt usv里面的函数')
-            #print(self.env.str2())
+
+
+    def moverandom(self):
+        Action = self.action_class
+        action = Action(False, False, 90.0 * random.randint(0, 3))
+        self.update_direction(action)
+        self.update_coordinate_enemyship()
+
+
+    def update_coordinate_enemyship(self):
+        originalx, originaly = self.x, self.y
+        beforetemp = self.env.env_matrix()
+
+        if (self.direction == 0.0):  # 向上移动一格，将direct置为0度
+            self.x -= self.speed
+        elif (self.direction == 90.0):  # 向右移动一格，将direct置为90度
+            self.y += self.speed
+        elif (self.direction == 180.0):  # 向下移动一格，将direct置为180度
+            self.x += self.speed
+        elif (self.direction == 270.0):  # 向左移动一格，将direct置为270度
+            self.y -= self.speed
+
+        #越界处理
+        if self.x <0 or self.x >self.env.width-1 or self.y <0 or self.y >self.env.height-1:
+            if self.x <0: self.x = 0
+            if self.x >self.env.width-1: self.x = self.env.width-1
+            if self.y <0 : self.y = 0
+            if self.y >self.env.height-1: self.y = self.env.height-1
+
+        # 判断更新后的位置是否合法(是否越界或是该位置有值)
+        if beforetemp[self.x][self.y] != 0:
+            self.x, self.y = originalx, originaly
+
 
     def update_coordinate(self):     #左上角是（0，0）
 
@@ -154,9 +193,94 @@ class OneStepUSV(BasicPlaneUSV):
         else:
             raise Exception(
                 "OneStepUSV的direction属性应该是正交角度,然而,得到了 %f 度" % self.direction)
-        #print('USV中位置更新之后：', self.x, self.y)
-        # print "我是%d号船,我现在走到了(%f,%f)"%(self.id,self.x,self.y)
 
 
-    # def update_direction(self, action):    #这里的更新方向是从原始方向直接变为当前方向，无转动，所以action中只需stay和angular_speed两个属性，clockwise没必要
-    #     self.direction = action.angular_speed
+
+
+
+
+
+
+class MyUSV(OneStepUSV):
+    '''一个策略简单的USV,派生自OneStepUSV'''
+
+    def __init__(self, uid, x, y, env):
+        super(MyUSV, self).__init__(uid, x, y, env)
+
+
+    def finda(self):
+        findamap = self.env.str2()  #A*方法的输入地图
+
+        #findamap 与 diagram的图是镜像对称的，x与y是相反的
+        diagram = GridWithWeights(len(findamap[0]),len(findamap))
+        obstacles = []
+        for kk in range(len(findamap)):
+            for hh in range(len(findamap[kk])):
+                if findamap[kk][hh] == 'S':
+                    startpoint = (hh,kk)
+                if findamap[kk][hh] == 'E':
+                    endpoint = (hh,kk)
+                if findamap[kk][hh] == '#':
+                    obstacles.append((hh,kk))
+
+        diagram.walls = obstacles
+        #print('draw_grid')
+        #draw_grid(diagram, weights=2,start=startpoint, goal=endpoint)
+        came_from, cost_so_far = a_star_search(diagram, start = startpoint, goal = endpoint)
+        #draw_grid(diagram, width=1, path=reconstruct_path(came_from, start=startpoint, goal=endpoint))
+        pathtm = reconstruct_path(came_from, start=startpoint, goal=endpoint)
+        '''print(pathtm)'''
+        firstnode = (pathtm[0][1],pathtm[0][0])
+        secondnode = (pathtm[1][1],pathtm[1][0])
+
+
+
+        # 这里的地图形式是：左上角是（0，0），右下角是（n,n）,,所以下面上下左右如下描述：：
+        if secondnode[1] - firstnode[1] == 0 and secondnode[0] - firstnode[0] == -1:
+            string = 'up'
+        elif secondnode[1] - firstnode[1] == -1 and secondnode[0] - firstnode[0] == 0:
+            string = 'left'
+        elif secondnode[1] - firstnode[1] == 0 and secondnode[0] - firstnode[0] == 1:
+            string = 'down'
+        else:
+            string = 'right'
+
+        '''print('action是上下左右中的',string)'''
+        #print('USV当前位置：',self.x,self.y)
+
+
+        if (string =='left'):
+            direct = 270.0
+        elif(string =='down'):
+            direct = 180.0
+        elif(string =='right'):
+            direct = 90.0
+        else:
+            direct = 0.0
+
+
+        Action = self.action_class
+
+        # 这里要根据A*算法进行修改，只获取走一步，
+        next_action = Action(False, True, direct)
+        # print('使用A*算法的下一步：',next_action)
+
+        return next_action
+
+
+    def decision_algorithm(self):
+        act = self.finda()
+        return act
+
+
+    def update_direction(self, action):
+        self.direction = action.angular_speed
+
+
+    def recordenv(self):
+        curenv = self.env.env_matrix()
+        return curenv
+
+    def recordaction(self):
+        curaction = self.decision_algorithm()
+        return curaction

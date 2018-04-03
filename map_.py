@@ -84,7 +84,7 @@ class BasicMap(object):
             ship_x, ship_y = ship.coordinate()
             env_np[ship_x][ship_y] = -1
             
-        env_np[self.target_x][self.target_y] = 0
+        env_np[self.target_x][self.target_y] = 2
         return env_np
 
 
