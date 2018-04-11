@@ -195,3 +195,99 @@ class BasicGUIGame(BasicGame):
                 if event.type == QUIT:
                     exit()
             self.gui.display.update()
+
+
+
+
+
+
+
+
+
+class MyContinueGame(BasicGame):
+    def __init__(self,obsmove):
+        super(MyContinueGame, self).__init__()
+        self.arriveTarget = 0
+        self.arriveObstacle = 0
+        self.arriveUnlegal = 0
+        self.obsMoveBool = obsmove #默认false，障碍物不随机移动
+
+
+
+    def update(self):
+        print('update_之前：输出map.env_matrix()函数的地图形式：：')
+        #np.set_printoptions(threshold=np.nan)
+        #print(self.map.env_matrix())
+        #temptestoutput = self.map.env_matrix()
+        #print('输出值为1的位置：',np.argwhere(temptestoutput == 1))
+        #print('输出值为-1的位置：', np.argwhere(temptestoutput == -1))
+        #print('输出值为2的位置：', np.argwhere(temptestoutput == 2))
+
+        for ship in self.map.friendly_ships:
+            if ship.getuid() == 0:
+                ship.move()
+            self.check_target()
+            self.check_obstacle()
+            self.check_legal()
+
+        if self.obsMoveBool == False:
+            pass
+        else:
+            #添加圆形障碍物的移动（需在其移动方法中添加对所随机移动的下一位置的合法性判断，若下一位置不合法则保持原位置）
+            for obstacle in self.map.obs:
+               obstacle.obsRandomMove()
+
+        print('update_之后：输出ma.env_matrix()函数的地图形式：：')
+        #print(self.map.env_matrix())
+
+
+    #USV是否到达终点
+    def check_target(self):
+        target_x, target_y = self.map.target_coordinate()
+        for ship in self.map.friendly_ships:
+            ship_x, ship_y = ship.coordinate()
+            if ((ship_x - target_x)*(ship_x - target_x) + (ship_y - target_y)*(ship_y - target_y)) <= ((ship.radius + self.map.target_radius)*(ship.radius + self.map.target_radius)):
+                self.is_target_safe = False
+                self.arriveTarget = 1
+                break
+
+
+    #USV是否碰到障碍物
+    def check_obstacle(self):
+        for ship in self.map.friendly_ships:
+            ship_x, ship_y = ship.coordinate()
+
+            for obstacle in self.map.obs:
+                if ((ship_x - obstacle.x)*(ship_x - obstacle.x) + (ship_y - obstacle.y)*(ship_y - obstacle.y)) <= ((ship.radius + obstacle.radius)*(ship.radius + obstacle.radius)):
+                    self.is_target_safe = False
+                    self.arriveObstacle = 1
+                    break
+
+
+    #USV是否越界
+    def check_legal(self):
+        for ship in self.map.friendly_ships:
+            ship_x, ship_y = ship.coordinate()
+
+            width, height = self.map.width,self.map.height
+            if ( ship_x < ship.radius  or ship_y < ship.radius or ship_x > (width - 1 - ship.radius) or ship_y > (height - 1 - ship.radius)):
+                self.is_target_safe = False
+                self.arriveUnlegal = 1
+
+
+    def is_game_over(self):
+        return not self.is_target_safe
+
+
+    def start(self):
+        while not self.is_game_over():
+            #print('game-start-update前的地图形式：');#print(self.map.str2())
+            self.update()
+            print ('----------------------------------------------------------------------------------------')
+            #print ("press any key to continue");input()
+        print ("game over!")
+        print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
+        print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
+        print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
+
+

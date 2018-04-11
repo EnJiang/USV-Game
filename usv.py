@@ -284,3 +284,35 @@ class MyUSV(OneStepUSV):
     def recordaction(self):
         curaction = self.decision_algorithm()
         return curaction
+
+
+
+
+
+
+class MyContinueUSV(BasicPlaneUSV):
+    '''一个策略简单的USV,派生自BasicObsUSV,用于连续环境下USV，
+        认为USV可瞬间达到下一次角速度且按照speed走一帧时间的距离
+    '''
+
+    def __init__(self, uid, x, y, env):
+        super(MyContinueUSV, self).__init__(uid, x, y, env)
+        self.action_class = Action = namedtuple("action", ['stay', 'clockwise', 'angular_speed', 'speed'])
+        self.speed = 1
+        self.radius = 1
+
+
+    def getuid(self):
+        return self.id
+
+
+    def decision_algorithm(self):
+        '''这种USV的action对象有四个属性:
+        1.stay,如果设为True,代表USV决定不行动,后面的参数被忽略;
+        2.clockwise,转动方向是否是顺时针;
+        3.angular_speed角速度;
+        4.speed速度.
+        如果stay参数为False,USV将会根据clockwise的指示转动angular_speed*t(一帧时间)度,然后前进当前的速度*t的距离'''
+        Action = self.action_class
+        act = Action(False, False, 2.0, 1.0)
+        return act
