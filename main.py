@@ -43,12 +43,17 @@ class DQNAgent:
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = Sequential()
-        model.add(Conv2D(32, (3, 3), input_shape=(
-            1, 10, 10), activation='selu', data_format="channels_first"))
+        model.add(Conv2D(32, (2, 2),input_shape=(
+            1, 10, 10),
+            activation='selu',
+            kernel_initializer='lecun_normal',
+            bias_initializer='lecun_normal',
+            data_format="channels_first"))
         model.add(Flatten())
-        model.add(Dense(512, activation='selu'))
-        model.add(Dense(64, activation='selu'))
-        model.add(Dense(32, activation='selu'))
+        model.add(Dense(512, activation='selu', kernel_initializer='lecun_normal', bias_initializer='lecun_normal'))
+        model.add(Dense(64, activation='selu', kernel_initializer='lecun_normal', bias_initializer='lecun_normal'))
+        model.add(Dense(32, activation='selu',
+                        kernel_initializer='lecun_normal', bias_initializer='lecun_normal'))
         model.add(Dense(self.action_size, activation='sigmoid'))
         model.compile(loss='categorical_crossentropy',
                       optimizer=Adam(lr=self.learning_rate))
