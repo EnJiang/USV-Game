@@ -18,12 +18,7 @@ class NpaMyUSV(MyUSV):
 class World(object):
     def __init__(self, Policy):
         self.policy_agents = []
-
         self.policy = Policy(self)
-
-        # configure spaces
-        self.action_space = []
-        self.observation_space = []
 
     def step(self, action_n):
         raise NotImplementedError()
@@ -87,7 +82,10 @@ class OneStepWorld(World):
 
         # configure spaces
         self.action_space = [l, u, r, d]
-        self.observation_space = [l, u, r, d]
+
+    @property
+    def observation_space(self):
+        return self.game.map.env_matrix()
 
     def init_game(self):
         test_map = BasicMap(10, 10)
@@ -155,7 +153,7 @@ class OneStepWorld(World):
         # return self.observation_space[]
 
     def step(self, action_n, time):
-        action_i = action_n[0]  # as there is only one agent
+        action_i = action_n  # as there is only one agent
         actor = self.policy_agents[0]
         actor.last_action = self.action_space[action_i]
         self.game.update()
@@ -174,15 +172,15 @@ class OneStepWorld(World):
                 y = self.game.map.target_coordinate()[1]
             actor.x = x
             actor.y = y
-            return [self.game.map.env_matrix()], [-150], [False], ["Nothing"]
+            return [self.game.map.env_matrix()], [-150], [False], []
 
         if self.game.arriveTarget:
-            return [self.game.map.env_matrix()], [300], [True], ["Nothing"]
+            return [self.game.map.env_matrix()], [300], [True], []
 
         if self.game.arriveObstacle:
-            return [self.game.map.env_matrix()], [-300], [True], ["Nothing"]
+            return [self.game.map.env_matrix()], [-300], [True], []
 
-        return [self.game.map.env_matrix()], [distance_reward - time], [False], ["Nothing"]
+        return [self.game.map.env_matrix()], [distance_reward - time], [False], []
 
     def reset(self):
         # reset world

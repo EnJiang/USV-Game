@@ -11,9 +11,14 @@ class OneStepEnv(gym.Env):
         self.world = world
         self.agents = self.world.policy_agents
 
-        # configure spaces
-        self.action_space = []
-        self.observation_space = []
+
+    @property
+    def action_space(self):
+        return self.world.action_space
+
+    @property
+    def observation_space(self):
+        return self.world.observation_space
 
     def step(self, action_n):
         return self.world.step(action_n)
@@ -23,7 +28,7 @@ class OneStepEnv(gym.Env):
         return self.world.reset()
 
     # render environment
-    def render(self):
+    def render(self, **kwargs):
         self.world.render()
 
     def observe(self):
@@ -37,6 +42,10 @@ class TestEnv(OneStepEnv):
         super().__init__(world)
 
 class OnePlayerOneStepEnv(OneStepEnv):
-    def step(self, action_n, time):
+    def step(self, action_n):
+        time = 0
         obs_n, reward_n, done_n, info_n = self.world.step(action_n, time)
-        return obs_n[0], reward_n[0], done_n[0], info_n[0]
+        return obs_n[0], reward_n[0], done_n[0], {}
+
+    def render(self, **kwargs):
+        pass

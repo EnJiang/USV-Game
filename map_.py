@@ -85,6 +85,7 @@ class BasicMap(object):
             env_np[ship_x][ship_y] = -1
             
         env_np[self.target_x][self.target_y] = 2
+        # return np.reshape(env_np, (1, ) + env_np.shape)
         return env_np
 
 
