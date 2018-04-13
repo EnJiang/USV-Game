@@ -4,6 +4,7 @@ from environment import OnePlayerOneStepEnv
 from policy import TestPolicy
 from world import OneStepWorld
 from time import sleep
+from time import time as now
 
 # w = OneStepWorld(TestPolicy)
 # env = OnePlayerOneStepEnv(w)
@@ -77,6 +78,8 @@ class DQNAgent:
 
     def replay(self, batch_size):
 
+        start = now()
+
         x = []
         y = []
         
@@ -113,10 +116,12 @@ class DQNAgent:
 
         x = np.array(x)
         y = np.array(y)
-        self.model.fit(x, y, epochs=1, verbose=0)
+        self.model.fit(x, y, epochs=3, verbose=0)
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
+        print(now() - start)
 
     def load(self, name):
         self.model.load_weights(name)
@@ -138,7 +143,42 @@ if __name__ == "__main__":
     agent = DQNAgent(state_size, action_size)
     # agent.load("./save/cartpole-dqn.h5")
     done = False
-    batch_size = 3
+    batch_size = 1024 * 8
+
+    while 1:
+        print("warming up...")
+        state = env.reset()
+        # state = np.reshape(state, [1, state_size])
+        state = np.reshape(state, [1, 10, 10])
+
+        s = 0
+        t = 0
+        for time in range(500):
+            try:
+                a_star_action = env.world.policy_agents[0].finda()
+                a_star_action_i = env.world.action_space.index(a_star_action)
+            except:
+                a_star_action_i = None
+
+            action = agent.act(state, a_star_action_i)
+            # print(action)
+            next_state, reward, done, _ = env.step([action])
+            # reward = reward if not done else -100
+            s += reward
+            t += 1
+            # next_state = np.reshape(next_state, [1, state_size])
+            next_state = np.reshape(next_state, [1, 10, 10])
+            agent.remember(state, action, reward, next_state, done)
+            state = next_state
+            if done:
+                break
+
+        if len(agent.memory) % 2000 == 0:
+            print("warming up: %d, %d" % (len(agent.memory), 100000))
+
+        if len(agent.memory) > 100000:
+            break
+
 
     for e in range(EPISODES):
         state = env.reset()
@@ -169,8 +209,8 @@ if __name__ == "__main__":
                       .format(e, EPISODES, s / t, agent.epsilon, reward, time + 1))
                 break
                 
-        if len(agent.memory) > 100:
+        if len(agent.memory) > 100000:
             agent.replay(batch_size)
 
-    if e % 3000 == 0 and e > 0:
-        agent.save("%d.ml" % e)
+        if e % 3000 == 0 and e > 0:
+            agent.save("%d.ml" % e)
