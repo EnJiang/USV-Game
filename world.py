@@ -153,7 +153,7 @@ class OneStepWorld(World):
         # return self.observation_space[]
 
     def step(self, action_n, time):
-        action_i = action_n  # as there is only one agent
+        action_i = action_n[0]  # as there is only one agent
         actor = self.policy_agents[0]
         actor.last_action = self.action_space[action_i]
         self.game.update()

@@ -70,6 +70,7 @@ class DQNAgent:
                 return random.randrange(self.action_size)
             else:
                 return guide_action
+        state = np.array([state])
         act_values = self.model.predict(state)
         # exit()
         return np.argmax(act_values[0])  # returns action
@@ -80,16 +81,32 @@ class DQNAgent:
         y = []
         
         minibatch = random.sample(self.memory, batch_size)
+
+        states = []
+        next_states = []
+
         for state, action, reward, next_state, done in minibatch:
+            states.append(state)
+            next_states.append(next_state)
+
+        next_states = np.array(next_states)
+        predicted_q = self.model.predict(next_states)
+        states = np.array(states)
+        predicted_f = self.model.predict(states)
+
+        for i, r in enumerate(minibatch):
+            state, action, reward, next_state, done = r
             target = reward
             # print(self.model.predict(next_state))
             # exit()
             if not done:
                 target = (reward + self.gamma *
                         #   np.amax(self.model.predict(next_state)))
-                          np.amax(self.model.predict(next_state)[0]))
-            target_f = self.model.predict(state)
-            target_f[0][action] = target
+                          np.amax(predicted_q[i]))
+            target_f = predicted_f[i]
+            # print(target_f)
+            # exit()
+            target_f[action] = target
         
             x.append(state.reshape(1, 10, 10))
             y.append(target_f.reshape(4))
@@ -121,12 +138,12 @@ if __name__ == "__main__":
     agent = DQNAgent(state_size, action_size)
     # agent.load("./save/cartpole-dqn.h5")
     done = False
-    batch_size = 1024
+    batch_size = 3
 
     for e in range(EPISODES):
         state = env.reset()
         # state = np.reshape(state, [1, state_size])
-        state = np.reshape(state, [1, 1, 10, 10])
+        state = np.reshape(state, [1, 10, 10])
 
         s = 0
         t = 0
@@ -139,12 +156,12 @@ if __name__ == "__main__":
 
             action = agent.act(state, a_star_action_i)
             # print(action)
-            next_state, reward, done, _ = env.step([action], time)
+            next_state, reward, done, _ = env.step([action])
             # reward = reward if not done else -100
             s += reward
             t += 1
             # next_state = np.reshape(next_state, [1, state_size])
-            next_state = np.reshape(next_state, [1, 1, 10, 10])
+            next_state = np.reshape(next_state, [1, 10, 10])
             agent.remember(state, action, reward, next_state, done)
             state = next_state
             if done:
@@ -152,7 +169,7 @@ if __name__ == "__main__":
                       .format(e, EPISODES, s / t, agent.epsilon, reward, time + 1))
                 break
                 
-        if len(agent.memory) > 100000:
+        if len(agent.memory) > 100:
             agent.replay(batch_size)
 
     if e % 3000 == 0 and e > 0:
