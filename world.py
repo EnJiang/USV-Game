@@ -159,7 +159,7 @@ class OneStepWorld(World):
         self.game.update()
 
         x, y = actor.coordinate()
-        distance_reward = 100 - ((self.game.map.target_coordinate()[0] - x) ** 2 + (self.game.map.target_coordinate()[0] - y) ** 2) / (self.game.map.target_coordinate()[0]**2 + self.game.map.target_coordinate()[1]**2) * 100
+        distance_reward = 18 - (abs(self.game.map.target_coordinate()[0] - x) + abs(self.game.map.target_coordinate()[1] - y))
 
         if x < 0 or y < 0 or x > self.game.map.target_coordinate()[0] or y > self.game.map.target_coordinate()[1]:
             if x < 0:
@@ -180,7 +180,7 @@ class OneStepWorld(World):
         if self.game.arriveObstacle:
             return [self.game.map.env_matrix()], [-300], [True], []
 
-        return [self.game.map.env_matrix()], [distance_reward - time], [False], []
+        return [self.game.map.env_matrix()], [distance_reward], [False], []
 
     def reset(self):
         # reset world

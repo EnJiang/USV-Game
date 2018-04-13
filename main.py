@@ -143,10 +143,12 @@ if __name__ == "__main__":
     agent = DQNAgent(state_size, action_size)
     # agent.load("./save/cartpole-dqn.h5")
     done = False
-    batch_size = 1024 * 8
+    batch_size = 1024
+
+    print("warming up...")
 
     while 1:
-        print("warming up...")
+        
         state = env.reset()
         # state = np.reshape(state, [1, state_size])
         state = np.reshape(state, [1, 10, 10])
@@ -172,9 +174,6 @@ if __name__ == "__main__":
             state = next_state
             if done:
                 break
-
-        if len(agent.memory) % 2000 == 0:
-            print("warming up: %d, %d" % (len(agent.memory), 100000))
 
         if len(agent.memory) > 100000:
             break
