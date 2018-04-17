@@ -81,7 +81,11 @@ class OneStepWorld(World):
         d = Action(False, True, 270)
 
         # configure spaces
-        self.action_space = [l, u, r, d]
+        self._action_space = [l, u, r, d]
+
+    @property
+    def action_space(self):
+        return self._action_space
 
     @property
     def observation_space(self):
@@ -148,12 +152,8 @@ class OneStepWorld(World):
 
         return game
 
-    def decide(self):
-        return [self.policy.action(self.observation_space)]
-        # return self.observation_space[]
-
     def step(self, action_n, time):
-        action_i = action_n[0]  # as there is only one agent
+        action_i = action_n  # as there is only one agent
         actor = self.policy_agents[0]
         actor.last_action = self.action_space[action_i]
         self.game.update()
@@ -192,3 +192,20 @@ class OneStepWorld(World):
     def render(self):
         # print("render!")
         raise NotImplementedError()
+
+class ContinuousWorld(World):
+    def __init__(self):
+        super().__init__(Policy)
+
+        self.game = self.init_game()
+
+        self.policy_agents = self.game.map.friendly_ships
+
+        self.action_class = namedtuple(
+            "action", ['stay', 'clockwise', 'angular_speed'])
+        Action = self.action_class
+
+        # configure spaces
+        # that is a angular_speed, from 0 to 1
+        # it will be multiplied by 360
+        self.action_space = [0.5]

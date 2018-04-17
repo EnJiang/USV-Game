@@ -41,7 +41,7 @@ class TestEnv(OneStepEnv):
     def __init__(self, world):
         super().__init__(world)
 
-class OnePlayerOneStepEnv(OneStepEnv):
+class OnePlayerEnv(OneStepEnv):
     def step(self, action_n):
         time = 0
         obs_n, reward_n, done_n, info_n = self.world.step(action_n, time)

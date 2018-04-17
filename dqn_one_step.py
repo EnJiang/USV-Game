@@ -9,7 +9,7 @@ from rl.agents.dqn import DQNAgent
 from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
 
-from environment import OnePlayerOneStepEnv
+from environment import OnePlayerEnv
 from policy import TestPolicy
 from world import OneStepWorld
 from time import sleep
@@ -19,7 +19,7 @@ ENV_NAME = 'CartPole-v0'
 
 # Get the environment and extract the number of actions.
 w = OneStepWorld(TestPolicy)
-env = OnePlayerOneStepEnv(w)
+env = OnePlayerEnv(w)
 np.random.seed(123)
 env.seed(123)
 nb_actions = len(env.action_space)
@@ -43,7 +43,7 @@ model.add(Dense(16))
 model.add(Activation('relu'))
 model.add(Dense(nb_actions))
 model.add(Activation('linear'))
-print(model.summary())
+model.summary()
 
 # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
 # even the metrics!
@@ -61,7 +61,7 @@ policy = BoltzmannQPolicy()
 #     return q_values
 # DQNAgent.compute_q_values = money_patched_foo
 
-dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10,
+dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=1000,
                target_model_update=1e-2, policy=policy)
 
 dqn.compile(Adam(lr=1e-3), metrics=['mae'])
@@ -72,7 +72,7 @@ dqn.compile(Adam(lr=1e-3), metrics=['mae'])
 dqn.fit(env, nb_steps=50000, visualize=False, verbose=1)
 
 # After training is done, we save the final weights.
-dqn.save_weights('dqn_{}_weights.h5f'.format(ENV_NAME), overwrite=True)
+# dqn.save_weights('dqn_{}_weights.h5f'.format(ENV_NAME), overwrite=True)
 
 # Finally, evaluate our algorithm for 5 episodes.
 dqn.test(env, nb_episodes=5, visualize=False)
