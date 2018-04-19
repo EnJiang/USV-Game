@@ -6,6 +6,8 @@ from map_ import BasicMap
 from usv import OneStepUSV
 from plane_test import MyUSV, MyGame
 
+from collections.abc import Iterable
+
 class NpaMyUSV(MyUSV):
 
     def __init__(self, uid, x, y, env):
@@ -157,7 +159,10 @@ class OneStepWorld(World):
     def step(self, action_n, time):
         self.path_len += 1
 
-        action_i = action_n[0]  # as there is only one agent
+        if isinstance(action_n, Iterable):
+            action_i = action_n[0]  # as there is only one agent
+        else:
+            action_i = action_n
         actor = self.policy_agents[0]
         actor.last_action = self.action_space[action_i]
         self.game.update()
