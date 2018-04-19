@@ -78,4 +78,4 @@ dqn.fit(env, nb_steps=500000, visualize=False, verbose=1)
 dqn.save_weights('dqn_{}_weights.h5f'.format(ENV_NAME), overwrite=True)
 
 # Finally, evaluate our algorithm for 5 episodes.
-dqn.test(env, nb_episodes=5, visualize=False)
+dqn.test(env, nb_episodes=5, nb_max_episode_steps=1000, visualize=False)
