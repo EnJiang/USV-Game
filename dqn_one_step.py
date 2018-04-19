@@ -10,7 +10,7 @@ from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
 
 from environment import OnePlayerEnv
-from policy import EpsGreedyQPolicyWithGuide
+from policy import EpsGreedyQPolicyWithGuide, TestPolicy
 from world import OneStepWorld
 from time import sleep
 
