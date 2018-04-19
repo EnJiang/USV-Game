@@ -14,7 +14,7 @@ from policy import EpsGreedyQPolicyWithGuide, TestPolicy
 from world import OneStepWorld
 from time import sleep
 
-ENV_NAME = 'CartPole-v0'
+ENV_NAME = 'One_Step'
 
 
 # Get the environment and extract the number of actions.
@@ -61,7 +61,7 @@ policy = EpsGreedyQPolicyWithGuide(w)
 #     return q_values
 # DQNAgent.compute_q_values = money_patched_foo
 
-dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=1000,
+dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10000,
                target_model_update=1e-2, policy=policy)
 
 dqn.compile(Adam(lr=1e-3), metrics=['mse'])
@@ -69,10 +69,10 @@ dqn.compile(Adam(lr=1e-3), metrics=['mse'])
 # Okay, now it's time to learn something! We visualize the training here for show, but this
 # slows down training quite a lot. You can always safely abort the training prematurely using
 # Ctrl + C.
-dqn.fit(env, nb_steps=50000, visualize=False, verbose=1)
+dqn.fit(env, nb_steps=500000, visualize=False, verbose=1)
 
 # After training is done, we save the final weights.
-# dqn.save_weights('dqn_{}_weights.h5f'.format(ENV_NAME), overwrite=True)
+dqn.save_weights('dqn_{}_weights.h5f'.format(ENV_NAME), overwrite=True)
 
 # Finally, evaluate our algorithm for 5 episodes.
 dqn.test(env, nb_episodes=5, visualize=False)
