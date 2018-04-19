@@ -32,8 +32,8 @@ model = Sequential()
 model.add(Conv2D(filters=8, kernel_size=(3, 3), activation="relu", input_shape=(1, ) + env.observation_space.shape,
                     data_format="channels_first"))
 # model.add(MaxPool2D(2, 2)),
-model.add(Conv2D(filters=8, kernel_size=(3, 3),
-                 activation="relu", data_format="channels_first"))
+# model.add(Conv2D(filters=8, kernel_size=(3, 3),
+#                  activation="relu", data_format="channels_first"))
 # model.add(MaxPool2D(2, 2))
 model.add(Conv2D(filters=2, kernel_size=(2, 2),
                  activation="relu", data_format="channels_first"))
