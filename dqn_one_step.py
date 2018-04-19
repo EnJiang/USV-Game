@@ -10,7 +10,7 @@ from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
 
 from environment import OnePlayerEnv
-from policy import TestPolicy
+from policy import EpsGreedyQPolicyWithGuide
 from world import OneStepWorld
 from time import sleep
 
@@ -48,7 +48,7 @@ model.summary()
 # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
 # even the metrics!
 memory = SequentialMemory(limit=50000, window_length=1)
-policy = BoltzmannQPolicy()
+policy = EpsGreedyQPolicyWithGuide(w)
 
 
 # def money_patched_foo(self, state):
@@ -64,7 +64,7 @@ policy = BoltzmannQPolicy()
 dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=1000,
                target_model_update=1e-2, policy=policy)
 
-dqn.compile(Adam(lr=1e-3), metrics=['mae'])
+dqn.compile(Adam(lr=1e-3), metrics=['mse'])
 
 # Okay, now it's time to learn something! We visualize the training here for show, but this
 # slows down training quite a lot. You can always safely abort the training prematurely using
