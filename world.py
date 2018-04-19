@@ -83,6 +83,8 @@ class OneStepWorld(World):
         # configure spaces
         self._action_space = [l, u, r, d]
 
+        self.path_len = 0
+
     @property
     def action_space(self):
         return self._action_space
@@ -153,7 +155,9 @@ class OneStepWorld(World):
         return game
 
     def step(self, action_n, time):
-        action_i = action_n  # as there is only one agent
+        self.path_len += 1
+
+        action_i = action_n[0]  # as there is only one agent
         actor = self.policy_agents[0]
         actor.last_action = self.action_space[action_i]
         self.game.update()
@@ -176,7 +180,7 @@ class OneStepWorld(World):
             return [self.game.map.env_matrix()], [-150], [True], []
 
         if self.game.arriveTarget:
-            return [self.game.map.env_matrix()], [300], [True], []
+            return [self.game.map.env_matrix()], [300 - self.path_len], [True], []
 
         if self.game.arriveObstacle:
             return [self.game.map.env_matrix()], [-300], [True], []
@@ -187,6 +191,7 @@ class OneStepWorld(World):
         # reset world
         self.game = self.init_game()
         self.policy_agents = self.game.map.friendly_ships
+        self.path_len = 0
         return self.game.map.env_matrix()
 
     # render environment

@@ -6,21 +6,6 @@ from world import OneStepWorld
 from time import sleep
 from time import time as now
 
-# w = OneStepWorld(TestPolicy)
-# env = OnePlayerOneStepEnv(w)
-# while 1:
-#     obs_n = env.observe()
-#     action_n = env.decide()
-#     obs, reward, done, info = env.step(action_n)
-#     while not done:
-#         obs, reward, done, info = env.step(action_n)
-#         action_n = env.decide()
-#         # print(obs, reward, done, info)
-#     sleep(1)
-#     print(w.game.map.friendly_ships[0].coordinate())
-#     env.reset()
-
-
 import random
 import gym
 import numpy as np
@@ -29,8 +14,10 @@ from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten
 from keras.optimizers import Adam
 
+from dqn_one_step_test import model
+
 class DQNAgent:
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size, mode, model=None):
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=200000)
@@ -39,7 +26,15 @@ class DQNAgent:
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99985
         self.learning_rate = 0.001
-        self.model = self._build_model()
+
+        assert mode in ["test", "train"]
+        if mode == "test":
+            self.epsilon = self.epsilon_min
+
+        if model:
+            self.model = model
+        else:
+            self.model = self._build_model()
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
@@ -131,8 +126,10 @@ class DQNAgent:
 
 
 EPISODES = 100000
+warm_up_step = 18000
 
 if __name__ == "__main__":
+
     # env = gym.make('CartPole-v1')
 
     w = OneStepWorld(TestPolicy)
@@ -140,15 +137,16 @@ if __name__ == "__main__":
 
     state_size = 100
     action_size = 4
-    agent = DQNAgent(state_size, action_size)
+    agent = DQNAgent(state_size, action_size, model=model, mode="test")
     # agent.load("./save/cartpole-dqn.h5")
     done = False
     batch_size = 1024
 
     print("warming up...")
 
-    while 1:
-        
+    while 0:
+        print(len(agent.memory))
+
         state = env.reset()
         # state = np.reshape(state, [1, state_size])
         state = np.reshape(state, [1, 10, 10])
@@ -175,7 +173,7 @@ if __name__ == "__main__":
             if done:
                 break
 
-        if len(agent.memory) > 180000:
+        if len(agent.memory) > warm_up_step:
             break
 
 
@@ -208,8 +206,9 @@ if __name__ == "__main__":
                       .format(e, EPISODES, s / t, agent.epsilon, reward, time + 1))
                 break
                 
-        if len(agent.memory) > 180000:
-            agent.replay(batch_size)
+        if len(agent.memory) > warm_up_step:
+            pass
+            # agent.replay(batch_size)
 
-        if e % 3000 == 0 and e > 0:
-            agent.save("%d.ml" % e)
+        # if e % 3000 == 0 and e > 0:
+        #     agent.save("%d.ml" % e)
