@@ -31,9 +31,10 @@ nb_actions = len(env.action_space)
 model = Sequential()
 model.add(Conv2D(filters=32, kernel_size=(3, 3), activation="relu", input_shape=(1, ) + env.observation_space.shape,
                     data_format="channels_first"))
-model.add(MaxPool2D(2, 2)),
-model.add(Conv2D(filters=32, kernel_size=(3, 3), activation="relu"))
-model.add(MaxPool2D(2, 2))
+# model.add(MaxPool2D(2, 2)),
+model.add(Conv2D(filters=32, kernel_size=(3, 3),
+                 activation="relu", data_format="channels_first"))
+# model.add(MaxPool2D(2, 2))
 model.add(Flatten())
 model.add(Dense(256))
 model.add(Activation('relu'))
