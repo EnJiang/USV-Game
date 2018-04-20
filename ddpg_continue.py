@@ -79,18 +79,16 @@ if __name__ == "__main__":
     def monkey_patching_forward(self, observation):
         if random.random() < 0.1:
             action = env.agents[0].pathGuide().angular_speed / 360
-            return np.array([action])
+            action = np.array([action])
+            action = np.reshape(action, (1, ))
+            return action
 
         state = self.memory.get_recent_state(observation)
         action = self.select_action(state)
         self.recent_observation = observation
         self.recent_action = action
-
-        print(action)
-        print(len(action))
-        print(action.shape)
-
         return action
+        
     DDPGAgent.forward = monkey_patching_forward
 
     memory = SequentialMemory(limit=100000, window_length=1)
