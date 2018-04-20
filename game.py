@@ -215,7 +215,7 @@ class MyContinueGame(BasicGame):
 
 
     def update(self):
-        print('update_之前：输出map.env_matrix()函数的地图形式：：')
+        # print('update_之前：输出map.env_matrix()函数的地图形式：：')
         #np.set_printoptions(threshold=np.nan)
         #print(self.map.env_matrix())
         #temptestoutput = self.map.env_matrix()
@@ -237,7 +237,7 @@ class MyContinueGame(BasicGame):
             for obstacle in self.map.obs:
                obstacle.obsRandomMove()
 
-        print('update_之后：输出ma.env_matrix()函数的地图形式：：')
+        # print('update_之后：输出ma.env_matrix()函数的地图形式：：')
         #print(self.map.env_matrix())
 
 
