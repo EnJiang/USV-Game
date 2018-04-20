@@ -122,7 +122,7 @@ class MyContinueObsMap(BasicMap):
         env_np = np.zeros((self.width, self.height))
         for ship in self.ships:
             ship_x, ship_y = ship.coordinate()
-            ship_x = (int)(round(ship_x, 0));
+            ship_x = (int)(round(ship_x, 0))
             ship_y = (int)(round(ship_y, 0))
             env_np[ship_x][ship_y] = 1  # 1表示USV：USV的圆心
 

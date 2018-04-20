@@ -17,7 +17,7 @@ if __name__ == '__main__':
     continue_obsmap_test.py:  主函数
     '''
     test_map = MyContinueObsMap(100, 100)
-    test_map.set_target(2.0, 48.0)  #目标终点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
+    test_map.set_target(30.0, 55.0)  #目标终点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
 
     test_friendly_ship = MyContinueUSV(uid=0, x=12.0, y=50.0, env=test_map)    #USV友艇起始点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
     test_friendly_ship.set_as_friendly()
