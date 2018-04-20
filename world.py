@@ -270,7 +270,7 @@ class ContinuousWorld(World):
         # distance_reward = 30 - (abs(self.game.map.target_coordinate()[0] - x) + abs(self.game.map.target_coordinate()[1] - y))
         distance_reward = 0
 
-        if x < 0 or y < 0 or x > self.game.map.width or y > self.game.map.height:
+        if x < 0 or y < 0 or x >= self.game.map.width or y >= self.game.map.height:
             if x < 0:
                 x = 0
             if x > self.game.map.width:
