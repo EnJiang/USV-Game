@@ -82,7 +82,7 @@ if __name__ == "__main__":
         self.recent_observation = observation
         self.recent_action = action
 
-        if random.random() < 0.1:
+        if random.random() < 0.1 and self.training:
             action = env.agents[0].pathGuide().angular_speed / 360
             action = np.array([action])
             action = np.reshape(action, self.recent_action.shape)
