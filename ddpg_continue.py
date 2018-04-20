@@ -77,16 +77,17 @@ if __name__ == "__main__":
     critic.summary()
 
     def monkey_patching_forward(self, observation):
-        if random.random() < 0.1:
-            action = env.agents[0].pathGuide().angular_speed / 360
-            action = np.array([action])
-            action = np.reshape(action, (1, ))
-            return action
-
         state = self.memory.get_recent_state(observation)
         action = self.select_action(state)
         self.recent_observation = observation
         self.recent_action = action
+
+        if random.random() < 0.1:
+            action = env.agents[0].pathGuide().angular_speed / 360
+            action = np.array([action])
+            action = np.reshape(action, self.recent_action.shape)
+            return action
+
         return action
 
     DDPGAgent.forward = monkey_patching_forward

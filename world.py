@@ -274,11 +274,11 @@ class ContinuousWorld(World):
             if x < 0:
                 x = 0
             if x > self.game.map.width:
-                x = self.game.map.width
+                x = self.game.map.width - 1
             if y < 0:
                 y = 0
             if y > self.game.map.height:
-                y = self.game.map.height
+                y = self.game.map.height - 1
             actor.x = x
             actor.y = y
             return [self.game.map.env_matrix()], [-150], [True], []
