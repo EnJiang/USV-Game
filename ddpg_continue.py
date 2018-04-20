@@ -76,17 +76,17 @@ if __name__ == "__main__":
     critic = Model(inputs=[action_input, observation_input], outputs=x)
     critic.summary()
 
-    # def monkey_patching_forward(self, observation):
-    #     if random.random() < 0.1:
-    #         action = env.agents[0].pathGuide().angular_speed / 360
-    #         return [action]
+    def monkey_patching_forward(self, observation):
+        if random.random() < 0.1:
+            action = env.agents[0].pathGuide().angular_speed / 360
+            return np.array([action])
 
-    #     state = self.memory.get_recent_state(observation)
-    #     action = self.select_action(state)
-    #     self.recent_observation = observation
-    #     self.recent_action = action
-    #     return action
-    # DDPGAgent.forward = monkey_patching_forward
+        state = self.memory.get_recent_state(observation)
+        action = self.select_action(state)
+        self.recent_observation = observation
+        self.recent_action = action
+        return action
+    DDPGAgent.forward = monkey_patching_forward
 
     memory = SequentialMemory(limit=100000, window_length=1)
     agent = DDPGAgent(nb_actions=1, actor=actor, critic=critic, critic_action_input=action_input,
