@@ -78,7 +78,8 @@ if __name__ == "__main__":
 
     def monkey_patching_forward(self, observation):
         if random.random() < 0.1:
-            return env.agents[0].pathGuide().angular_speed / 360
+            action = env.agents[0].pathGuide().angular_speed / 360
+            return [action]
 
         state = self.memory.get_recent_state(observation)
         action = self.select_action(state)
