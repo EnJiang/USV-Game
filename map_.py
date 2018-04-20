@@ -129,7 +129,8 @@ class MyContinueObsMap(BasicMap):
             for i in range(ship_x - ship.radius, ship_x + ship.radius + 1):
                 for j in range(ship_y - ship.radius, ship_y + ship.radius + 1):
                     if ((i - ship_x) * (i - ship_x) + (j - ship_y) * (j - ship_y)) <= (ship.radius * ship.radius):
-                        env_np[i][j] = 1  # 表示USV： USV的半径区域
+                        if i < self.width and j < self.height:# 边缘检测
+                            env_np[i][j] = 1  # 表示USV： USV的半径区域
 
         for obs in self.obs:
             # 方式1：这样做会出现障碍物在移动过程中，占据（二、三、四、5⃣五）个栅格单元的情况
