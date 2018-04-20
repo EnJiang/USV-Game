@@ -123,10 +123,11 @@ class MyContinueObsMap(BasicMap):
             ship_x, ship_y = ship.coordinate()
             ship_x = (int)(round(ship_x, 0))
             ship_y = (int)(round(ship_y, 0))
-            ship_x = self.width - 1 if ship_x >= self.width else ship_x
-            ship_y = self.height - 1 if ship_x >= self.height else ship_y
 
-            env_np[ship_x][ship_y] = 1  # 1表示USV：USV的圆心
+            try:
+                env_np[ship_x][ship_y] = 1  # 1表示USV：USV的圆心
+            except:
+                pass
 
             for i in range(ship_x - ship.radius, ship_x + ship.radius + 1):
                 for j in range(ship_y - ship.radius, ship_y + ship.radius + 1):
