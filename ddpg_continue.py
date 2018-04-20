@@ -85,6 +85,11 @@ if __name__ == "__main__":
         action = self.select_action(state)
         self.recent_observation = observation
         self.recent_action = action
+
+        print(action)
+        print(len(action))
+        print(action.shape)
+
         return action
     DDPGAgent.forward = monkey_patching_forward
 
