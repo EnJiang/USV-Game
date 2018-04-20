@@ -5,6 +5,7 @@ from pygame.locals import *
 import copy
 from collections import namedtuple
 from time import sleep
+import numpy as np
 
 
 class BasicGame(object):
@@ -216,8 +217,10 @@ class MyContinueGame(BasicGame):
 
     def update(self):
         print('update_之前：输出map.env_matrix()函数的地图形式：：')
+
         #np.set_printoptions(threshold=np.nan)
         #print(self.map.env_matrix())
+
         #temptestoutput = self.map.env_matrix()
         #print('输出值为1的位置：',np.argwhere(temptestoutput == 1))
         #print('输出值为-1的位置：', np.argwhere(temptestoutput == -1))

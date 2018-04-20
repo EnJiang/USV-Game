@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from collections import namedtuple
-from math import sin, cos, pi
+from math import sin, cos, pi, atan
 from implementation import *
 import random
 
@@ -306,6 +306,13 @@ class MyContinueUSV(BasicPlaneUSV):
         return self.id
 
 
+
+    def update_coordinate(self):    #x轴负方向是0度，y正方向是90度，(按照左上角是0，0更新坐标),所以如下计算
+        self.y -= cos(pi * self.direction / 180) * self.speed
+        self.x -= sin(pi * self.direction / 180) * self.speed
+
+
+
     def decision_algorithm(self):
         '''这种USV的action对象有四个属性:
         1.stay,如果设为True,代表USV决定不行动,后面的参数被忽略;
@@ -313,6 +320,121 @@ class MyContinueUSV(BasicPlaneUSV):
         3.angular_speed角速度;
         4.speed速度.
         如果stay参数为False,USV将会根据clockwise的指示转动angular_speed*t(一帧时间)度,然后前进当前的速度*t的距离'''
-        Action = self.action_class
-        act = Action(False, False, 2.0, 1.0)
+        #Action = self.action_class
+        #act = Action(False, False, 2.0, 1.0)
+        act = self.pathGuide()
         return act
+
+
+
+    def pathGuide(self):
+        difference_angular = self.next_angular_guide2() - self.direction
+        #print('当前direction,当前difference_angular：',self.direction,difference_angular)
+        Action = self.action_class
+        act = Action(False, True, difference_angular, self.speed)
+        return act
+
+
+    def next_angular_guide(self):
+        target_x, target_y = self.env.target_coordinate()
+        #print('USV&终点', self.x, self.y, target_x, target_y)
+
+        # USV与终点在同一垂直线上：(USV最左侧值与终点最左侧值的差值是否在USV的2倍半径范围内)
+        if abs(round(self.y, 0) - round(target_y, 0)) <= self.radius * 2:
+            if self.x < target_x:
+                angle = 270
+                #print('斜率对应的角度angle-整数1:',angle)
+                return angle
+            else:
+                angle = 90
+                #print('斜率对应的角度angle-整数2:', angle)
+                return angle
+
+        # USV与终点在同一垂直线上：
+        if abs(round(self.x, 0) - round(target_x, 0)) <= self.radius * 2:
+            if self.y < target_y:
+                angle = 180
+                #print('斜率对应的角度angle-整数3:', angle)
+                return angle
+            else:
+                angle = 0
+                #print('斜率对应的角度angle-整数4:', angle)
+                return angle
+
+        # 斜率可计算(这里要适应左上角是(0,0)的状况，和传统左下角是(0,0)有差异)
+        slope = (self.x - target_x) / (target_y - self.y)
+        # 斜率转换为弧度
+        arc = atan(slope) / pi * 180
+
+        # 终点在起点的左区域
+        if target_y < self.y:
+            # 左上角区域
+            if target_x < self.x:
+                angle = - round(arc, 0)
+                #print('斜率对应的角度angle-小数1:', angle)
+                return angle
+            # 左下角区域
+            else:
+                angle = 360 - round(arc, 0)
+                #print('斜率对应的角度angle-小数2:', angle)
+                return angle
+
+        # 终点在起点的右区域
+        else:
+            angle = 180 - round(arc, 0)
+            #print('斜率对应的角度angle-小数3:', angle)
+            return angle
+
+
+
+    def next_angular_guide2(self):
+        target_x, target_y = self.env.target_coordinate()
+        #print('USV&终点',self.x,self.y,target_x, target_y)
+
+        #USV与终点在同一垂直线上：
+        if round(self.y, 0) - round(target_y, 0) == 0:
+            if self.x < target_x:
+                angle = 270
+                #print('斜率对应的角度angle-整数1:',angle)
+                return angle
+            else:
+                angle = 90
+                #print('斜率对应的角度angle-整数2:', angle)
+                return angle
+
+        # USV与终点在同一垂直线上：
+        if round(self.x, 0) - round(target_x, 0) == 0:
+            if self.y < target_y:
+                angle = 180
+                #print('斜率对应的角度angle-整数3:', angle)
+                return angle
+            else:
+                angle = 0
+                #print('斜率对应的角度angle-整数4:', angle)
+                return angle
+
+        # 假设斜率都存在（因为USV和终点都是浮点数，不可能完全相等，存在误差）
+        # 斜率可计算(这里要适应左上角是(0,0)的状况，和传统左下角是(0,0)有差异)
+        slope = (self.x - target_x) / (target_y - self.y)
+        # 斜率转换为弧度
+        arc = atan(slope) / pi * 180
+        #print('arc:', arc)
+
+        # 终点在起点的左区域
+        if target_y < self.y:
+            # 左上角区域
+            if target_x < self.x:
+                angle = - round(arc, 0)
+                #print('斜率对应的角度angle1-小数:', angle)
+                return angle
+            # 左下角区域
+            else:
+                angle = 360 - round(arc, 0)
+                #print('斜率对应的角度angle2-小数:', angle)
+                return angle
+
+        # 终点在起点的右区域
+        else:
+            angle = 180 - round(arc, 0)
+            #print('斜率对应的角度angle3-小数:', angle)
+            return angle
