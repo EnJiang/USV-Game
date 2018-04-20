@@ -6,6 +6,8 @@ from map_ import BasicMap
 from usv import OneStepUSV
 from plane_test import MyUSV, MyGame
 
+from collections.abc import Iterable
+
 class NpaMyUSV(MyUSV):
 
     def __init__(self, uid, x, y, env):
@@ -18,12 +20,7 @@ class NpaMyUSV(MyUSV):
 class World(object):
     def __init__(self, Policy):
         self.policy_agents = []
-
         self.policy = Policy(self)
-
-        # configure spaces
-        self.action_space = []
-        self.observation_space = []
 
     def step(self, action_n):
         raise NotImplementedError()
@@ -86,8 +83,17 @@ class OneStepWorld(World):
         d = Action(False, True, 270)
 
         # configure spaces
-        self.action_space = [l, u, r, d]
-        self.observation_space = [l, u, r, d]
+        self._action_space = [l, u, r, d]
+
+        self.path_len = 0
+
+    @property
+    def action_space(self):
+        return self._action_space
+
+    @property
+    def observation_space(self):
+        return self.game.map.env_matrix()
 
     def init_game(self):
         test_map = BasicMap(10, 10)
@@ -150,18 +156,20 @@ class OneStepWorld(World):
 
         return game
 
-    def decide(self):
-        return [self.policy.action(self.observation_space)]
-        # return self.observation_space[]
-
     def step(self, action_n, time):
-        action_i = action_n[0]  # as there is only one agent
+        self.path_len += 1
+
+        if isinstance(action_n, Iterable):
+            action_i = action_n[0]  # as there is only one agent
+        else:
+            action_i = action_n
         actor = self.policy_agents[0]
         actor.last_action = self.action_space[action_i]
         self.game.update()
 
         x, y = actor.coordinate()
-        distance_reward = 100 - ((self.game.map.target_coordinate()[0] - x) ** 2 + (self.game.map.target_coordinate()[0] - y) ** 2) / (self.game.map.target_coordinate()[0]**2 + self.game.map.target_coordinate()[1]**2) * 100
+        # distance_reward = 30 - (abs(self.game.map.target_coordinate()[0] - x) + abs(self.game.map.target_coordinate()[1] - y))
+        distance_reward = 0
 
         if x < 0 or y < 0 or x > self.game.map.target_coordinate()[0] or y > self.game.map.target_coordinate()[1]:
             if x < 0:
@@ -174,23 +182,41 @@ class OneStepWorld(World):
                 y = self.game.map.target_coordinate()[1]
             actor.x = x
             actor.y = y
-            return [self.game.map.env_matrix()], [-150], [False], ["Nothing"]
+            return [self.game.map.env_matrix()], [-150], [True], []
 
         if self.game.arriveTarget:
-            return [self.game.map.env_matrix()], [300], [True], ["Nothing"]
+            return [self.game.map.env_matrix()], [300 - self.path_len], [True], []
 
         if self.game.arriveObstacle:
-            return [self.game.map.env_matrix()], [-300], [True], ["Nothing"]
+            return [self.game.map.env_matrix()], [-300], [True], []
 
-        return [self.game.map.env_matrix()], [distance_reward - time], [False], ["Nothing"]
+        return [self.game.map.env_matrix()], [distance_reward], [False], []
 
     def reset(self):
         # reset world
         self.game = self.init_game()
         self.policy_agents = self.game.map.friendly_ships
+        self.path_len = 0
         return self.game.map.env_matrix()
 
     # render environment
     def render(self):
         # print("render!")
         raise NotImplementedError()
+
+class ContinuousWorld(World):
+    def __init__(self):
+        super().__init__(Policy)
+
+        self.game = self.init_game()
+
+        self.policy_agents = self.game.map.friendly_ships
+
+        self.action_class = namedtuple(
+            "action", ['stay', 'clockwise', 'angular_speed'])
+        Action = self.action_class
+
+        # configure spaces
+        # that is a angular_speed, from 0 to 1
+        # it will be multiplied by 360
+        self.action_space = [0.5]
