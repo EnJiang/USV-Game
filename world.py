@@ -284,7 +284,7 @@ class ContinuousWorld(World):
             return [self.game.map.env_matrix()], [-150], [True], []
 
         if self.game.arriveTarget:
-            return [self.game.map.env_matrix()], [300 - self.time], [True], []
+            return [self.game.map.env_matrix()], [300 - self.time / 1000], [True], []
 
         if self.game.arriveObstacle:
             return [self.game.map.env_matrix()], [-300], [True], []

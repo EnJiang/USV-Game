@@ -216,12 +216,7 @@ class MyContinueGame(BasicGame):
 
 
     def update(self):
-<<<<<<< HEAD
         # print('update_之前：输出map.env_matrix()函数的地图形式：：')
-=======
-        print('update_之前：输出map.env_matrix()函数的地图形式：：')
-
->>>>>>> f73b46b744005917dcd206f8dd22bfb548bf95bd
         #np.set_printoptions(threshold=np.nan)
         #print(self.map.env_matrix())
 

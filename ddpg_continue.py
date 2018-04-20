@@ -16,7 +16,6 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Activation, Flatten, Input, Concatenate, Conv2D, MaxPool2D
 from keras.optimizers import Adam
 
-from rl.processors import WhiteningNormalizerProcessor
 from rl.agents import DDPGAgent
 from rl.memory import SequentialMemory
 from rl.random import OrnsteinUhlenbeckProcess
@@ -77,19 +76,32 @@ if __name__ == "__main__":
     critic = Model(inputs=[action_input, observation_input], outputs=x)
     critic.summary()
 
-    memory = SequentialMemory(limit=100000)
+    def monkey_patching_forward(self, observation):
+        if random.random() < 0.1:
+            return env.agents[0].pathGuide().angular_speed / 360
+
+        state = self.memory.get_recent_state(observation)
+        action = self.select_action(state)
+        self.recent_observation = observation
+        self.recent_action = action
+        return action
+    DDPGAgent.forward = monkey_patching_forward
+
+    memory = SequentialMemory(limit=100000, window_length=1)
     agent = DDPGAgent(nb_actions=1, actor=actor, critic=critic, critic_action_input=action_input,
                     memory=memory, nb_steps_warmup_critic=1000, nb_steps_warmup_actor=1000,
                     gamma=.99, target_model_update=1e-3)
-    agent.compile([Adam(lr=1e-4), Adam(lr=1e-3)], metrics=['mae'])
 
-    agent.fit(env, nb_steps=1000000, visualize=False, verbose=1)
+    agent.compile([Adam(lr=1e-4), Adam(lr=1e-3)], metrics=['mae'])
+    agent.fit(env, nb_steps=300000, visualize=False, verbose=1)
 
     # After training is done, we save the final weights.
-    agent.save_weights('ddpg_{}_weights.h5f'.format(ENV_NAME), overwrite=True)
+    agent.save_weights('ddpg_{}_weights.h5f'.format("continous"), overwrite=True)
 
     # Finally, evaluate our algorithm for 5 episodes.
-    agent.test(env, nb_episodes=5, visualize=True, nb_max_episode_steps=200)
+    agent.test(env, nb_episodes=5, visualize=True, nb_max_episode_steps=1000)
+
+    exit()
 
     while 1:
         state = env.reset()
