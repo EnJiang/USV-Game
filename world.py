@@ -14,6 +14,7 @@ class NpaMyUSV(MyUSV):
     def __init__(self, uid, x, y, env):
         super(MyUSV, self).__init__(uid, x, y, env)
         self.last_action = None
+        self.radius = 3
 
     def decision_algorithm(self):
         return self.last_action

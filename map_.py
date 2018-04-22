@@ -163,7 +163,7 @@ class MyContinueObsMap(BasicMap):
             for jtar in range(after_targety - self.target_radius, after_targety + self.target_radius + 1):
                 if ((itar - after_targetx) * (itar - after_targetx) + (jtar - after_targety) * (
                     jtar - after_targety)) <= (self.target_radius * self.target_radius):
-                    env_np[itar][jtar] = 2  # 2表示终点:终点圆心
+                    env_np[itar][jtar] = 100  # 2表示终点:终点圆心
 
         return env_np
 
