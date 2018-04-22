@@ -94,13 +94,13 @@ if __name__ == "__main__":
 
     DDPGAgent.forward = monkey_patching_forward
 
-    memory = SequentialMemory(limit=100000, window_length=1)
+    memory = SequentialMemory(limit=1000000, window_length=1)
     agent = DDPGAgent(nb_actions=1, actor=actor, critic=critic, critic_action_input=action_input,
-                    memory=memory, nb_steps_warmup_critic=8000, nb_steps_warmup_actor=8000,
+                    memory=memory, nb_steps_warmup_critic=15000, nb_steps_warmup_actor=15000,
                     gamma=.99, target_model_update=1e-3)
 
-    agent.compile([Adam(lr=1e-4), Adam(lr=1e-3)], metrics=['mae'])
-    agent.fit(env, nb_steps=300000, visualize=False, verbose=1)
+    agent.compile([Adam(lr=1e-4), Adam(lr=1e-4)], metrics=['mae'])
+    agent.fit(env, nb_steps=800000, visualize=False, verbose=1)
 
     # After training is done, we save the final weights.
     agent.save_weights('ddpg_{}_weights.h5f'.format("continous"), overwrite=True)
