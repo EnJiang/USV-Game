@@ -13,7 +13,7 @@ import gym
 from gym import wrappers
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Flatten, Input, Concatenate, Conv2D, MaxPool2D
+from keras.layers import Dense, Activation, Flatten, Input, Concatenate, Conv2D, MaxPool2D, AvgPool2D
 from keras.optimizers import Adam
 
 from rl.agents import DDPGAgent
@@ -37,11 +37,12 @@ if __name__ == "__main__":
 
     # Next, we build a very simple model.
     actor = Sequential()
-    actor.add(Conv2D(filters=8, kernel_size=(7, 7), activation="relu", input_shape=(1, 100, 100),
+    actor.add(Conv2D(filters=8, kernel_size=(3, 3), activation="relu", input_shape=(1, 100, 100),
                     data_format="channels_first"))
-    actor.add(Conv2D(filters=2, kernel_size=(7, 7),
+    actor.add(Conv2D(filters=2, kernel_size=(3, 3),
                     activation="relu", data_format="channels_first"))
-    actor.add(MaxPool2D(2, 2, data_format="channels_first"))
+    # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
+    actor.add(AvgPool2D(2, 2, data_format="channels_first"))
     actor.add(Flatten())
     actor.add(Dense(256))
     actor.add(Activation('relu'))
@@ -56,11 +57,12 @@ if __name__ == "__main__":
     action_input = Input(shape=(1,), name='action_input')
     observation_input = Input(
         shape=(1, 100, 100), name='observation_input')
-    x = Conv2D(filters=8, kernel_size=(7, 7), activation="relu",
+    x = Conv2D(filters=8, kernel_size=(3, 3), activation="relu",
                      data_format="channels_first")(observation_input)
-    x = Conv2D(filters=2, kernel_size=(7, 7), activation="relu",
+    x = Conv2D(filters=2, kernel_size=(3, 3), activation="relu",
                      data_format="channels_first")(x)
-    x = MaxPool2D(2, 2, data_format="channels_first")(x)
+    # x = MaxPool2D(2, 2, data_format="channels_first")(x)
+    x = AvgPool2D(2, 2, data_format="channels_first")(x)
     x = Flatten()(x)
     x = Dense(255)(x)
     x = Activation('relu')(x)
