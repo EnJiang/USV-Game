@@ -70,9 +70,9 @@ if __name__ == "__main__":
     x = Dense(32)(x)
     x = Activation('relu')(x)
     x = Dense(16)(x)
-    x = Activation('tanh')(x)
-    x = Dense(1)(x)
     x = Activation('sigmoid')(x)
+    x = Dense(1)(x)
+    x = Activation('linear')(x)
     critic = Model(inputs=[action_input, observation_input], outputs=x)
     critic.summary()
 
