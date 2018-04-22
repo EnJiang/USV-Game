@@ -216,10 +216,10 @@ class ContinuousWorld(World):
         def decision_algorithm(self):
             return self.last_action
 
-    def __init__(self, Policy):
+    def __init__(self, Policy, obsticle_moving):
         super().__init__(Policy)
 
-        self.game = self.init_game()
+        self.game = self.init_game(obsticle_moving)
 
         self.policy_agents = self.game.map.friendly_ships
 
@@ -234,7 +234,7 @@ class ContinuousWorld(World):
 
         self.time = 0
 
-    def init_game(self):
+    def init_game(self, obsticle_moving):
         test_map = MyContinueObsMap(100, 100)
         test_map.set_target(2.0, 48.0)  # 目标终点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
 
@@ -251,7 +251,8 @@ class ContinuousWorld(World):
         obs3 = CircleObstacle(uid=2, x=70.0, y=60.0, radius=10, env=test_map)
         test_map.addobs(obs3)
 
-        game = MyContinueGame(True)  # False表示障碍物不随机移动; True表示障碍物随机移动
+        # False表示障碍物不随机移动; True表示障碍物随机移动
+        game = MyContinueGame(obsticle_moving)
         game.set_map(test_map)
 
         return game

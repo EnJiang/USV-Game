@@ -26,7 +26,7 @@ EPISODES = 100000
 if __name__ == "__main__":
     # env = gym.make('CartPole-v1')
 
-    w = ContinuousWorld(TestPolicy)
+    w = ContinuousWorld(TestPolicy, obsticle_moving=False)
     env = OnePlayerEnv(w)
 
     state_size = 100
