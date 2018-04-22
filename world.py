@@ -219,6 +219,8 @@ class ContinuousWorld(World):
     def __init__(self, Policy, obsticle_moving):
         super().__init__(Policy)
 
+        self.obsticle_moving = obsticle_moving
+
         self.game = self.init_game(obsticle_moving)
 
         self.policy_agents = self.game.map.friendly_ships
@@ -295,7 +297,7 @@ class ContinuousWorld(World):
 
     def reset(self):
         # reset world
-        self.game = self.init_game()
+        self.game = self.init_game(self.obsticle_moving)
         self.policy_agents = self.game.map.friendly_ships
         self.time = 0
         return self.game.map.env_matrix()
