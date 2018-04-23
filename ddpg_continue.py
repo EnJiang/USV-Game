@@ -88,6 +88,7 @@ if __name__ == "__main__":
             action = env.agents[0].pathGuide().angular_speed / 360
             action = np.array([action])
             action = np.reshape(action, self.recent_action.shape)
+            self.recent_action = action
             return action
 
         return action
