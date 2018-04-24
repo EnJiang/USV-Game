@@ -134,7 +134,10 @@ class MyContinueObsMap(BasicMap):
             except:
                 pass
 
-            env_np[ship_x][ship_y] = 1  # 1表示USV：USV的圆心
+            try:
+                env_np[ship_x][ship_y] = 1  # 1表示USV：USV的圆心
+            except:
+                pass
 
             for i in range(ship_x - ship.radius, ship_x + ship.radius + 1):
                 for j in range(ship_y - ship.radius, ship_y + ship.radius + 1):
@@ -161,7 +164,10 @@ class MyContinueObsMap(BasicMap):
             for ix in range(obs_x - obs.radius, obs_x + obs.radius + 1):
                 for iy in range(obs_y - obs.radius, obs_y + obs.radius + 1):
                     if ((ix - obs_x) * (ix - obs_x) + (iy - obs_y) * (iy - obs_y)) <= (obs.radius * obs.radius):
-                        env_np[ix][iy] = -1  # -1表示障碍物
+                        try:
+                            env_np[ix][iy] = -1  # -1表示障碍物
+                        except:
+                            pass
 
         after_targetx, after_targety = (int)(round(self.target_x, 0)), (int)(round(self.target_y, 0))
         env_np[after_targetx][after_targety] = 2  # 2表示终点:终点圆心
