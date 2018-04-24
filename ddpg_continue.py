@@ -84,7 +84,7 @@ if __name__ == "__main__":
         self.recent_observation = observation
         self.recent_action = action
 
-        if random.random() < 0.1 and self.training:
+        if random.random() < 0.1:
             action = env.agents[0].pathGuide().angular_speed / 360
             action = np.array([action])
             action = np.reshape(action, self.recent_action.shape)
@@ -101,6 +101,7 @@ if __name__ == "__main__":
                     gamma=.99, target_model_update=1e-3)
 
     agent.compile([Adam(lr=1e-4), Adam(lr=1e-4)], metrics=['mae'])
+    agent.load_weights('ddpg_{}_weights.h5f'.format("continous"))
     agent.fit(env, nb_steps=800000, visualize=False, verbose=1)
 
     # After training is done, we save the final weights.
