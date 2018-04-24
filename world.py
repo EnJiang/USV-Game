@@ -1,10 +1,11 @@
 import copy
 from collections import namedtuple
 
-from game import BasicGame
-from map_ import BasicMap
-from usv import OneStepUSV
+from game import BasicGame, MyContinueGame
+from map_ import BasicMap, MyContinueObsMap
+from usv import OneStepUSV, MyContinueUSV
 from plane_test import MyUSV, MyGame
+from CircleObstacle import CircleObstacle
 
 from collections.abc import Iterable
 
@@ -13,6 +14,7 @@ class NpaMyUSV(MyUSV):
     def __init__(self, uid, x, y, env):
         super(MyUSV, self).__init__(uid, x, y, env)
         self.last_action = None
+        self.radius = 3
 
     def decision_algorithm(self):
         return self.last_action
@@ -205,18 +207,97 @@ class OneStepWorld(World):
         raise NotImplementedError()
 
 class ContinuousWorld(World):
-    def __init__(self):
+    class _MyContinueUSV(MyContinueUSV):
+
+        def __init__(self, uid, x, y, env):
+            super().__init__(uid, x, y, env)
+            self.last_action = None
+
+        def decision_algorithm(self):
+            return self.last_action
+
+    def __init__(self, Policy, obsticle_moving):
         super().__init__(Policy)
 
-        self.game = self.init_game()
+        self.obsticle_moving = obsticle_moving
+
+        self.game = self.init_game(obsticle_moving)
 
         self.policy_agents = self.game.map.friendly_ships
 
         self.action_class = namedtuple(
-            "action", ['stay', 'clockwise', 'angular_speed'])
+            "action", ['stay', 'clockwise', 'angular_speed', "speed"])
         Action = self.action_class
 
         # configure spaces
         # that is a angular_speed, from 0 to 1
         # it will be multiplied by 360
-        self.action_space = [0.5]
+        # self.action_space = [0.5]
+
+        self.time = 0
+
+    def init_game(self, obsticle_moving):
+        test_map = MyContinueObsMap(100, 100)
+        test_map.set_target(2.0, 48.0)  # 目标终点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
+
+        # USV友艇起始点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
+        test_friendly_ship = self._MyContinueUSV(uid=0, x=12.0, y=50.0, env=test_map)
+        test_friendly_ship.set_as_friendly()
+        test_map.add_ship(test_friendly_ship)
+
+        # 静态矩形障碍物区域（注：初始位置的设定要合法，即在map缩小obs.radius的范围）
+        obs1 = CircleObstacle(uid=0, x=10.0, y=10.0, radius=10, env=test_map)
+        test_map.addobs(obs1)
+        obs2 = CircleObstacle(uid=1, x=40.0, y=40.0, radius=10, env=test_map)
+        test_map.addobs(obs2)
+        obs3 = CircleObstacle(uid=2, x=70.0, y=60.0, radius=10, env=test_map)
+        test_map.addobs(obs3)
+
+        # False表示障碍物不随机移动; True表示障碍物随机移动
+        game = MyContinueGame(obsticle_moving)
+        game.set_map(test_map)
+
+        return game
+
+    def step(self, action_n, time):
+        self.time += 1
+
+        if isinstance(action_n, Iterable):
+            action = action_n[0]  # as there is only one agent
+        else:
+            action = action_n
+        actor = self.policy_agents[0]
+        actor.last_action = self.action_class(False, True, action * 360, 1)
+        self.game.update()
+
+        x, y = actor.coordinate()
+        # distance_reward = 30 - (abs(self.game.map.target_coordinate()[0] - x) + abs(self.game.map.target_coordinate()[1] - y))
+        distance_reward = 0
+
+        if x < 0 or y < 0 or x >= self.game.map.width or y >= self.game.map.height:
+            if x < 0:
+                x = 0
+            if x >= self.game.map.width:
+                x = self.game.map.width - 1
+            if y < 0:
+                y = 0
+            if y >= self.game.map.height:
+                y = self.game.map.height - 1
+            actor.x = x
+            actor.y = y
+            return [self.game.map.env_matrix()], [-150], [True], []
+
+        if self.game.arriveTarget:
+            return [self.game.map.env_matrix()], [300 - self.time / 10], [True], []
+
+        if self.game.arriveObstacle:
+            return [self.game.map.env_matrix()], [-300], [True], []
+
+        return [self.game.map.env_matrix()], [distance_reward], [False], []
+
+    def reset(self):
+        # reset world
+        self.game = self.init_game(self.obsticle_moving)
+        self.policy_agents = self.game.map.friendly_ships
+        self.time = 0
+        return self.game.map.env_matrix()
