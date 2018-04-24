@@ -3,6 +3,7 @@
 import copy
 import numpy as np
 
+
 class BasicMap(object):
     '''Map类描绘了当前整个海面上的状况
     在这个简单的字符界面中"~"代表空白海面,E代表敌方舰船,F代表友方舰船'''
@@ -124,16 +125,21 @@ class MyContinueObsMap(BasicMap):
             ship_x = (int)(round(ship_x, 0))
             ship_y = (int)(round(ship_y, 0))
 
+            # if ship_x < ship.radius: ship_x = ship.radius
+            # if ship_x > self.width - 1 - ship.radius: ship_x = self.width - 1 - ship.radius
+            # if ship_y < ship.radius: ship_y = ship.radius
+            # if ship_y > self.height - 1 - ship.radius: ship_x = self.height - 1 - ship.radius
             try:
                 env_np[ship_x][ship_y] = 1  # 1表示USV：USV的圆心
             except:
                 pass
 
+            env_np[ship_x][ship_y] = 1  # 1表示USV：USV的圆心
+
             for i in range(ship_x - ship.radius, ship_x + ship.radius + 1):
                 for j in range(ship_y - ship.radius, ship_y + ship.radius + 1):
                     if ((i - ship_x) * (i - ship_x) + (j - ship_y) * (j - ship_y)) <= (ship.radius * ship.radius):
-                        if i < self.width and j < self.height:# 边缘检测
-                            env_np[i][j] = 1  # 表示USV： USV的半径区域
+                        env_np[i][j] = 1  # 表示USV： USV的半径区域
 
         for obs in self.obs:
             # 方式1：这样做会出现障碍物在移动过程中，占据（二、三、四、5⃣五）个栅格单元的情况
@@ -163,7 +169,7 @@ class MyContinueObsMap(BasicMap):
             for jtar in range(after_targety - self.target_radius, after_targety + self.target_radius + 1):
                 if ((itar - after_targetx) * (itar - after_targetx) + (jtar - after_targety) * (
                     jtar - after_targety)) <= (self.target_radius * self.target_radius):
-                    env_np[itar][jtar] = 100  # 2表示终点:终点圆心
+                    env_np[itar][jtar] = 2  # 2表示终点:终点圆心
 
         return env_np
 
