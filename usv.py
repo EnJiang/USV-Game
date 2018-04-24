@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from collections import namedtuple
-from math import sin, cos, pi, atan
+from math import sin, cos, pi, atan, sqrt
 from implementation import *
 import random
 
@@ -322,13 +322,19 @@ class MyContinueUSV(BasicPlaneUSV):
         如果stay参数为False,USV将会根据clockwise的指示转动angular_speed*t(一帧时间)度,然后前进当前的速度*t的距离'''
         #Action = self.action_class
         #act = Action(False, False, 2.0, 1.0)
-        act = self.pathGuide()
+
+        #act = self.pathGuide()
+        act = self.pathGuide2()
         return act
 
 
 
+
+
+    #起点朝向终点进行导引-方法1
     def pathGuide(self):
-        difference_angular = self.next_angular_guide2() - self.direction
+        #difference_angular = self.next_angular_guide2() - self.direction
+        difference_angular = self.next_angular_guide3((self.x, self.y), self.env.target_coordinate()) - self.direction
         #print('当前direction,当前difference_angular：',self.direction,difference_angular)
         Action = self.action_class
         act = Action(False, True, difference_angular, self.speed)
@@ -438,3 +444,162 @@ class MyContinueUSV(BasicPlaneUSV):
             angle = 180 - round(arc, 0)
             #print('斜率对应的角度angle3-小数:', angle)
             return angle
+
+
+
+    #含有输入参数startPoint[0]\ startPoint[1]表示：startPoint.x,startPoint.y(按照next_angular_guide2修改)
+    def next_angular_guide3(self, startPoint, endPoint):
+        #target_x, target_y = self.env.target_coordinate()
+        # print('USV&终点',self.x,self.y,target_x, target_y)
+
+        # USV与终点在同一垂直线上：
+        if round(startPoint[1], 0) - round(endPoint[1], 0) == 0:
+            if startPoint[0] < endPoint[0]:
+                angle = 270
+                # print('斜率对应的角度angle-整数1:',angle)
+                return angle
+            else:
+                angle = 90
+                # print('斜率对应的角度angle-整数2:', angle)
+                return angle
+
+        # USV与终点在同一垂直线上：
+        if round(startPoint[0], 0) - round(endPoint[0], 0) == 0:
+            if startPoint[1] < endPoint[1]:
+                angle = 180
+                # print('斜率对应的角度angle-整数3:', angle)
+                return angle
+            else:
+                angle = 0
+                # print('斜率对应的角度angle-整数4:', angle)
+                return angle
+
+        # 假设斜率都存在（因为USV和终点都是浮点数，不可能完全相等，存在误差）
+        # 斜率可计算(这里要适应左上角是(0,0)的状况，和传统左下角是(0,0)有差异)
+        slope = (startPoint[0] - endPoint[0]) / (endPoint[1] - startPoint[1])
+        # 斜率转换为弧度
+        arc = atan(slope) / pi * 180
+        # print('arc:', arc)
+
+        # 终点在起点的左区域
+        if endPoint[1] < startPoint[1]:
+            # 左上角区域
+            if endPoint[0] < startPoint[0]:
+                angle = - round(arc, 0)
+                # print('斜率对应的角度angle1-小数:', angle)
+                return angle
+            # 左下角区域
+            else:
+                angle = 360 - round(arc, 0)
+                # print('斜率对应的角度angle2-小数:', angle)
+                return angle
+
+        # 终点在起点的右区域
+        else:
+            angle = 180 - round(arc, 0)
+            # print('斜率对应的角度angle3-小数:', angle)
+            return angle
+
+
+
+
+
+
+
+
+    #起点与终点间添加一系列不与障碍物相交的中间点-方法2
+    def pathGuide2(self):
+        res = self.pathGuide_explore()
+        difference_angular = self.next_angular_guide3(res[0], res[1]) - self.direction
+        #print('当前direction,当前difference_angular：',self.direction,difference_angular)
+        Action = self.action_class
+        act = Action(False, True, difference_angular, self.speed)
+        return act
+
+
+    #迭代初始赋值
+    def pathGuide_explore(self):
+        target_x, target_y = self.env.target_coordinate()
+        toUseList = [(target_x, target_y),(self.x, self.y)]
+        pathList =[]
+        pathListRes = self.iter_explore(toUseList, pathList)
+        pathListRes.append((target_x, target_y))
+        return pathListRes
+
+
+    #迭代
+    def iter_explore(self, toUseList, pathList):
+        while len(toUseList)>=2:
+            #判断toUseList最后两点是否与障碍物相交
+            if ( self.pointToLine_Length(toUseList) ):
+                #不相交，pop和insert
+                pathList.append(toUseList.pop())
+
+            else:
+                #相交，找随机点
+                randx = round(random.uniform(0 + self.radius, self.env.width),4)
+                randy = round(random.uniform(0 + self.radius, self.env.height),4)
+                toUseList.insert(len(toUseList)-1, (randx, randy))
+                pathList = self.iter_explore(toUseList, pathList)
+
+        return pathList
+
+
+
+    #直线(a,b) point(x3);;a,b,x3是三点：构建Ax+By+c=0   但是没有考虑到障碍物与线段的垂线交点在线段延长线上
+    def pointToLine_Length2(self, toUseList):
+        a = toUseList[-1]
+        b = toUseList[-2]
+
+        # A = b.y - a.y
+        # B = a.x - b.x
+        # C = b.x * a.y - a.x * b.y
+        A = b[1] - a[1]
+        B = a[0] - b[0]
+        C = b[0] * a[1] - a[0] * b[1]
+
+        for obs in self.env.obs:
+            d = abs((A * obs.x + B * obs.y + C) / sqrt(A * A + B * B))
+            if ( d - obs.radius <= 0.05):
+                return False
+                #与障碍物相交
+        #与障碍物不相交
+        return True
+
+
+    #充分考虑了：障碍物与线段的距离（而不是障碍物与直线的距离，两者区别很大）
+    #https://www.cnblogs.com/lyggqm/p/4651979.html
+    def pointToLine_Length(self, toUseList):
+        A = toUseList[-1]
+        B = toUseList[-2]
+
+        AB = (B[0] - A[0], B[1] - A[1])
+        ABdic = sqrt(AB[0] * AB[0] + AB[1] * AB[1])
+
+        for obs in self.env.obs:
+            P = (obs.x, obs.y)
+            AP = (P[0] - A[0], P[1] - A[1])
+
+            dot = (AP[0] * AB[0] + AP[1] * AB[1]) / (ABdic * ABdic)
+
+            AC = (AB[0] * dot, AB[1] * dot)
+            C = (AC[0] + A[0], AC[1] + A[1])
+
+            if (dot > 1):
+                BP = (P[0] - B[0], P[1] - B[1])
+                leng = sqrt(BP[0] * BP[0] + BP[1] * BP[1])
+            elif dot < 0:
+                AP = (P[0] - A[0], P[1] - A[1])
+                leng = sqrt(AP[0] * AP[0] + AP[1] * AP[1])
+            else:
+                PC = (C[0] - P[0], C[1] - P[1])
+                leng = sqrt(PC[0] * PC[0] + PC[1] * PC[1])
+
+            if (leng - obs.radius <= 0.05):
+                return False
+                # 与障碍物相交
+        # 与障碍物不相交
+        return True
+
+
+

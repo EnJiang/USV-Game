@@ -7,6 +7,8 @@ from collections import namedtuple
 from time import sleep
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 
 class BasicGame(object):
     """基本游戏逻辑"""
@@ -216,15 +218,37 @@ class MyContinueGame(BasicGame):
 
 
     def update(self):
-        print('update_之前：输出map.env_matrix()函数的地图形式：：')
+        #print('update_之前：输出map.env_matrix()函数的地图形式：：')
 
         #np.set_printoptions(threshold=np.nan)
         #print(self.map.env_matrix())
 
-        #temptestoutput = self.map.env_matrix()
-        #print('输出值为1的位置：',np.argwhere(temptestoutput == 1))
-        #print('输出值为-1的位置：', np.argwhere(temptestoutput == -1))
-        #print('输出值为2的位置：', np.argwhere(temptestoutput == 2))
+        # plt.ion()
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111)
+        # ax.set_xlim(0,100)
+        # ax.set_ylim(0,100)
+        #
+        # temptestoutput = self.map.env_matrix()
+        # print('输出值为1的位置：', np.argwhere(temptestoutput == 1))
+        # print('输出值为-1的位置：', np.argwhere(temptestoutput == -1))
+        # print('输出值为2的位置：', np.argwhere(temptestoutput == 2))
+        # lines = []
+        # for i in range(len(np.argwhere(temptestoutput == 1))):
+        #     lines.append(
+        #         ax.scatter(np.argwhere(temptestoutput == 1)[i][0], np.argwhere(temptestoutput == 1)[i][1], s=60, c='g',
+        #                    marker='o'))  # 绿色
+        #
+        # for i in range(len(np.argwhere(temptestoutput == -1))):
+        #     lines.append(
+        #         ax.scatter(np.argwhere(temptestoutput == -1)[i][0], np.argwhere(temptestoutput == -1)[i][1], s=60,
+        #                    c='r', marker='*'))  # 红色终点
+        # for i in range(len(np.argwhere(temptestoutput == 2))):
+        #     lines.append(
+        #         ax.scatter(np.argwhere(temptestoutput == 2)[i][0], np.argwhere(temptestoutput == 2)[i][1], s=60, c='b',
+        #                    marker='.'))  # 蓝色USV
+        # plt.pause(0.05)
+        # plt.show()
 
         for ship in self.map.friendly_ships:
             if ship.getuid() == 0:
@@ -240,7 +264,7 @@ class MyContinueGame(BasicGame):
             for obstacle in self.map.obs:
                obstacle.obsRandomMove()
 
-        print('update_之后：输出ma.env_matrix()函数的地图形式：：')
+        #print('update_之后：输出ma.env_matrix()函数的地图形式：：')
         #print(self.map.env_matrix())
 
 
