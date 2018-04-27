@@ -7,7 +7,14 @@ from collections import namedtuple
 from time import sleep
 import numpy as np
 
-import matplotlib.pyplot as plt
+
+# import matplotlib
+# matplotlib.use('TkAgg')
+# import matplotlib.pyplot as plt
+# plt.ion()
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+
 
 
 class BasicGame(object):
@@ -223,32 +230,32 @@ class MyContinueGame(BasicGame):
         #np.set_printoptions(threshold=np.nan)
         #print(self.map.env_matrix())
 
-        # plt.ion()
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111)
+
+
         # ax.set_xlim(0,100)
-        # ax.set_ylim(0,100)
+        # ax.set_ylim(100,0)
         #
+        # import time
+        # start = time.time()
         # temptestoutput = self.map.env_matrix()
-        # print('输出值为1的位置：', np.argwhere(temptestoutput == 1))
-        # print('输出值为-1的位置：', np.argwhere(temptestoutput == -1))
-        # print('输出值为2的位置：', np.argwhere(temptestoutput == 2))
+        # # print('输出值为1的位置：',np.argwhere(temptestoutput == 1))
+        # # print('输出值为-1的位置：', np.argwhere(temptestoutput == -1))
+        # # print('输出值为2的位置：', np.argwhere(temptestoutput == 2))
         # lines = []
         # for i in range(len(np.argwhere(temptestoutput == 1))):
-        #     lines.append(
-        #         ax.scatter(np.argwhere(temptestoutput == 1)[i][0], np.argwhere(temptestoutput == 1)[i][1], s=60, c='g',
-        #                    marker='o'))  # 绿色
+        #     lines.append(ax.scatter(np.argwhere(temptestoutput == 1)[i][1], np.argwhere(temptestoutput == 1)[i][0], s=6, c='g', marker='.'))   #绿色
         #
         # for i in range(len(np.argwhere(temptestoutput == -1))):
-        #     lines.append(
-        #         ax.scatter(np.argwhere(temptestoutput == -1)[i][0], np.argwhere(temptestoutput == -1)[i][1], s=60,
-        #                    c='r', marker='*'))  # 红色终点
+        #     lines.append(ax.scatter(np.argwhere(temptestoutput == -1)[i][1], np.argwhere(temptestoutput == -1)[i][0], s=60, c='r',marker='*'))  #红色终点
         # for i in range(len(np.argwhere(temptestoutput == 2))):
-        #     lines.append(
-        #         ax.scatter(np.argwhere(temptestoutput == 2)[i][0], np.argwhere(temptestoutput == 2)[i][1], s=60, c='b',
-        #                    marker='.'))  # 蓝色USV
+        #     lines.append(ax.scatter(np.argwhere(temptestoutput == 2)[i][1], np.argwhere(temptestoutput == 2)[i][0], s=60, c='b',marker='o'))    #蓝色USV
         # plt.pause(0.05)
+        # for each in lines:
+        #     each.remove()
         # plt.show()
+        # print(time.time() - start)
+
+
 
         for ship in self.map.friendly_ships:
             if ship.getuid() == 0:
