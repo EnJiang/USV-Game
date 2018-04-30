@@ -77,7 +77,7 @@ if __name__ == "__main__":
         action = self.select_action(state)
         self.recent_observation = observation
         self.recent_action = action
-        print(self.step)
+        # print(self.step)
         # first check if we are in warming up, if so,
         # run the pre-defined path
         # or, if the warm up phrase is over, give a
