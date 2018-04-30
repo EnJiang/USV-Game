@@ -38,11 +38,11 @@ if __name__ == '__main__':
 
     # 静态矩形障碍物区域（注：初始位置的设定要合法，即在map缩小obs.radius的范围）
     obs1 = CircleObstacle(uid=0, x=10.0, y=10.0, radius=1, env=test_map);test_map.addobs(obs1)
-    #obs2 = CircleObstacle(uid=1, x=40.0, y=40.0, radius=1, env=test_map);test_map.addobs(obs2)
+    # obs2 = CircleObstacle(uid=1, x=40.0, y=40.0, radius=1, env=test_map);test_map.addobs(obs2)
     obs3 = CircleObstacle(uid=2, x=63.0, y=65.0, radius=1, env=test_map);test_map.addobs(obs3)
 
 
-    print('game-start:初始地图：\n',test_map.env_matrix());print('\n')
+    # print('game-start:初始地图：\n',test_map.env_matrix());print('\n')
     game = MyContinueGame(obsMoveSwitch)     #obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
     game.set_map(test_map)
 

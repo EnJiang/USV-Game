@@ -3,9 +3,10 @@ from collections import namedtuple
 
 from game import BasicGame, MyContinueGame
 from map_ import BasicMap, MyContinueObsMap
-from usv import OneStepUSV, MyContinueUSV
+from usv import *
 from plane_test import MyUSV, MyGame
 from CircleObstacle import CircleObstacle
+import numpy as np
 
 from collections.abc import Iterable
 
@@ -15,6 +16,15 @@ class NpaMyUSV(MyUSV):
         super(MyUSV, self).__init__(uid, x, y, env)
         self.last_action = None
         self.radius = 3
+
+    def decision_algorithm(self):
+        return self.last_action
+
+class _MyContinueDynamicsUSV(MyContinueDynamicsUSV):
+
+    def __init__(self, uid, x, y, env, envDisturb):
+        super().__init__(uid, x, y, env, envDisturb)
+        self.last_action = None
 
     def decision_algorithm(self):
         return self.last_action
@@ -227,12 +237,6 @@ class ContinuousWorld(World):
 
         self.action_class = namedtuple(
             "action", ['stay', 'clockwise', 'angular_speed', "speed"])
-        Action = self.action_class
-
-        # configure spaces
-        # that is a angular_speed, from 0 to 1
-        # it will be multiplied by 360
-        # self.action_space = [0.5]
 
         self.time = 0
 
@@ -301,3 +305,95 @@ class ContinuousWorld(World):
         self.policy_agents = self.game.map.friendly_ships
         self.time = 0
         return self.game.map.env_matrix()
+
+class ContinuousDynamicWorld(ContinuousWorld):
+    def __init__(self, Policy, obsticle_moving):
+        super().__init__(Policy, obsticle_moving)
+
+        self.obsticle_moving = obsticle_moving
+
+        self.game = self.init_game(obsticle_moving)
+
+        self.policy_agents = self.game.map.friendly_ships
+
+        self.action_class = Action = namedtuple("action", ['F', 'T'])
+
+        self.time = 0
+
+    def init_game(self, obsticle_moving):
+
+        #开关控制switch
+        dynamicsSwitch = True  # True表示加入动力学方程，False表示不加动力学方程（决策Action内容不同）
+        envDisturbSwitch = False  # False表示无环境干扰，True表示有环境干扰(干扰产生的数值很小很小的，影响不大)
+        obsMoveSwitch = obsticle_moving  # False表示障碍物不随机移动; True表示障碍物随机移动
+
+        '''开始游戏'''
+        test_map = MyContinueObsMap(100, 100)
+        # 目标终点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
+        test_map.set_target(30.0, 30.0)
+        #左上角(30.0, 30.0) 右上角(31.0, 59.0)  左下角(80.0, 30.0)   右下角(80.0, 60.0)
+        #print (test_map.env_matrix())
+
+        # USV友艇起始点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
+        if dynamicsSwitch == True:
+            # envDisturb:False表示无环境干扰，True表示有环境干扰(干扰产生的数值很小很小0.1左右吧)
+            test_friendly_ship = _MyContinueDynamicsUSV(
+                uid=0, x=52.0, y=50.0, env=test_map, envDisturb=envDisturbSwitch)
+        else:
+            test_friendly_ship = MyContinueUSV(uid=0, x=12.0, y=50.0, env=test_map)
+        test_friendly_ship.set_as_friendly()
+        test_map.add_ship(test_friendly_ship)
+
+        # 静态矩形障碍物区域（注：初始位置的设定要合法，即在map缩小obs.radius的范围）
+        obs1 = CircleObstacle(uid=0, x=10.0, y=10.0, radius=1, env=test_map)
+        test_map.addobs(obs1)
+        # obs2 = CircleObstacle(uid=1, x=40.0, y=40.0, radius=1, env=test_map);test_map.addobs(obs2)
+        obs3 = CircleObstacle(uid=2, x=63.0, y=65.0, radius=1, env=test_map)
+        test_map.addobs(obs3)
+
+        # print('game-start:初始地图：\n',test_map.env_matrix());print('\n')
+        # obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
+        game = MyContinueGame(obsMoveSwitch)
+        game.set_map(test_map)
+
+        return game
+
+    def step(self, action_n, time):
+        if self.time > 2000:
+            return [self.game.map.env_matrix()], [-150], [True], []
+
+        self.time += 1
+        # print(action_n)
+        # note that there is only one actor currently
+        action = np.reshape(action_n, (2, ))
+        F, T = action[0], action[1]
+
+        actor = self.policy_agents[0]
+        # print("in world:", actor)
+        actor.last_action = self.action_class(F, T)
+        self.game.update()
+
+        x, y = actor.coordinate()
+        # distance_reward = 30 - (abs(self.game.map.target_coordinate()[0] - x) + abs(self.game.map.target_coordinate()[1] - y))
+        distance_reward = 0
+
+        if x < 0 or y < 0 or x >= self.game.map.width or y >= self.game.map.height:
+            if x < 0:
+                x = 0
+            if x >= self.game.map.width:
+                x = self.game.map.width - 1
+            if y < 0:
+                y = 0
+            if y >= self.game.map.height:
+                y = self.game.map.height - 1
+            actor.x = x
+            actor.y = y
+            return [self.game.map.env_matrix()], [-150], [True], []
+
+        if self.game.arriveTarget:
+            return [self.game.map.env_matrix()], [300 - self.time / 5], [True], []
+
+        if self.game.arriveObstacle:
+            return [self.game.map.env_matrix()], [-300], [True], []
+
+        return [self.game.map.env_matrix()], [distance_reward], [False], []

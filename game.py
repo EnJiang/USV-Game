@@ -53,10 +53,6 @@ class BasicGame(object):
         print ("you lost!")
 
 
-
-
-
-
 class MyGame(BasicGame):
     def __init__(self):
         super(MyGame, self).__init__()
@@ -127,11 +123,6 @@ class MyGame(BasicGame):
         print ("game over!")
         print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
         print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
-
-
-
-
-
 
 
 class BasicGUIGame(BasicGame):
@@ -207,13 +198,6 @@ class BasicGUIGame(BasicGame):
             self.gui.display.update()
 
 
-
-
-
-
-
-
-
 class MyContinueGame(BasicGame):
     def __init__(self,obsmove):
         super(MyContinueGame, self).__init__()
@@ -221,8 +205,6 @@ class MyContinueGame(BasicGame):
         self.arriveObstacle = 0
         self.arriveUnlegal = 0
         self.obsMoveBool = obsmove #默认false，障碍物不随机移动
-
-
 
     def update(self):
         #print('update_之前：输出map.env_matrix()函数的地图形式：：')
@@ -234,7 +216,7 @@ class MyContinueGame(BasicGame):
 
         # ax.set_xlim(0,100)
         # ax.set_ylim(100,0)
-        #
+        
         # import time
         # start = time.time()
         # temptestoutput = self.map.env_matrix()
@@ -244,12 +226,12 @@ class MyContinueGame(BasicGame):
         # lines = []
         # for i in range(len(np.argwhere(temptestoutput == 1))):
         #     lines.append(ax.scatter(np.argwhere(temptestoutput == 1)[i][1], np.argwhere(temptestoutput == 1)[i][0], s=6, c='g', marker='.'))   #绿色
-        #
+        
         # for i in range(len(np.argwhere(temptestoutput == -1))):
         #     lines.append(ax.scatter(np.argwhere(temptestoutput == -1)[i][1], np.argwhere(temptestoutput == -1)[i][0], s=60, c='r',marker='*'))  #红色终点
         # for i in range(len(np.argwhere(temptestoutput == 2))):
         #     lines.append(ax.scatter(np.argwhere(temptestoutput == 2)[i][1], np.argwhere(temptestoutput == 2)[i][0], s=60, c='b',marker='o'))    #蓝色USV
-        # plt.pause(0.05)
+        # plt.pause(0.01)
         # for each in lines:
         #     each.remove()
         # plt.show()
@@ -274,7 +256,6 @@ class MyContinueGame(BasicGame):
         #print('update_之后：输出ma.env_matrix()函数的地图形式：：')
         #print(self.map.env_matrix())
 
-
     #USV是否到达终点
     def check_target(self):
         target_x, target_y = self.map.target_coordinate()
@@ -284,7 +265,6 @@ class MyContinueGame(BasicGame):
                 self.is_target_safe = False
                 self.arriveTarget = 1
                 break
-
 
     #USV是否碰到障碍物
     def check_obstacle(self):
@@ -297,7 +277,6 @@ class MyContinueGame(BasicGame):
                     self.arriveObstacle = 1
                     break
 
-
     #USV是否越界
     def check_legal(self):
         for ship in self.map.friendly_ships:
@@ -308,20 +287,20 @@ class MyContinueGame(BasicGame):
                 self.is_target_safe = False
                 self.arriveUnlegal = 1
 
-
     def is_game_over(self):
         return not self.is_target_safe
 
-
     def start(self):
+        i = 0
         while not self.is_game_over():
             #print('game-start-update前的地图形式：');#print(self.map.str2())
             self.update()
-            print ('----------------------------------------------------------------------------------------')
+            i += 1
+            # print ('----------------------------------------------------------------------------------------')
             #print ("press any key to continue");input()
-        print ("game over!")
-        print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
-        print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
-        print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
-
+        # print ("game over!")
+        # print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
+        # print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
+        # print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
+        print(i)
 

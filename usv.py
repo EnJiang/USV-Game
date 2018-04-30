@@ -4,6 +4,7 @@ from collections import namedtuple
 from math import sin, cos, pi, atan, sqrt
 from implementation import *
 import random
+import time
 
 class StaticUSV(object):
     """一个静态的USV类,move方法将会留空,这表示此类USV不可行动"""
@@ -76,13 +77,6 @@ class StaticUSV(object):
         '''将本USV定义为友军(防守方)'''
         self.is_enemy = False
 
-
-
-
-
-
-
-
 class BasicPlaneUSV(StaticUSV):
     """基本平面USV, 这个USV可以在瞬间改变自己的角速度和速度, 转动后在对应方向上走动一帧时间*速度的距离"""
 
@@ -116,8 +110,6 @@ class BasicPlaneUSV(StaticUSV):
     def update_coordinate(self):    #x轴负方向是0度，y正方向是90度，所以如下计算
         self.x -= cos(pi * self.direction / 180) * self.speed
         self.y += sin(pi * self.direction / 180) * self.speed
-
-
 
 class OneStepUSV(BasicPlaneUSV):
     """一个简单的USV类,在网格上它一次只能走动一步.每一时间单位,这种USV能够瞬时的改变自己的角速度,然后转动,最后向
@@ -193,13 +185,6 @@ class OneStepUSV(BasicPlaneUSV):
         else:
             raise Exception(
                 "OneStepUSV的direction属性应该是正交角度,然而,得到了 %f 度" % self.direction)
-
-
-
-
-
-
-
 
 class MyUSV(OneStepUSV):
     '''一个策略简单的USV,派生自OneStepUSV'''
@@ -284,11 +269,6 @@ class MyUSV(OneStepUSV):
     def recordaction(self):
         curaction = self.decision_algorithm()
         return curaction
-
-
-
-
-
 
 class MyContinueUSV(BasicPlaneUSV):
     '''一个策略简单的USV,派生自BasicObsUSV,用于连续环境下USV，
@@ -601,19 +581,12 @@ class MyContinueUSV(BasicPlaneUSV):
         # 与障碍物不相交
         return True
 
-
-
-
-
-
-
 #无附加质量和科氏力，线形阻尼
 #修改了update_xyzuvr中坐标更新，  （路径导引：左0 下90 右180 上270）
 class MyContinueDynamicsUSV(BasicPlaneUSV):
     '''一个策略简单的USV,派生自BasicObsUSV,用于连续环境下USV，
         认为USV可瞬间达到下一次角速度且按照speed走一帧时间的距离
     '''
-
 
     def __init__(self, uid, x, y, env, envDisturb):
         super(MyContinueDynamicsUSV, self).__init__(uid, x, y, env)
@@ -635,7 +608,8 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
         self.d22 = 117000.0#200.0
         self.d33 = 8020000.0#3224.0
 
-
+        self.F_max = 1000000 * 2
+        self.T_max = 60000 * 45000 * 2
 
         self.xyhList = [(self.x, self.y, self.heading)]
         self.uvrList = [(self.u, self.v, self.r)]
@@ -644,22 +618,20 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
 
         self.envDisturb = envDisturb  # 默认True,包含环境（风浪涌流干扰）
 
+        self.tmp = 0
+
     def set_init_xyh(self,x, y, heading):
         self.x = x
         self.y = y
         self.heading = heading
-
 
     def set_init_uvr(self,u, v, r):
         self.u = u
         self.v = v
         self.r = r
 
-
     def getuid(self):
         return self.id
-
-
 
     def decision_algorithm(self):
         '''这种USV的action对象有两个属性:
@@ -672,7 +644,6 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
 
         act = Action(F, T)#Action(30.0, 15.0)
         return act
-
 
     def update_xyduvr(self, F, T, t):
         '''输入变量：驱动力F,转向T,更新时间t;;;根据动力学方程计算uvr的加速度'''
@@ -734,30 +705,30 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
 
         #print('ax,ay,aheading:', list(map(float,[ax,ay,aheading])))
 
-
-
     def move(self):
         action = self.decision_algorithm()
         F, T = action.F, action.T
+        # print("moving now...", F, T)
+        F *= self.F_max
+        T *= self.T_max
         target_x,target_y = self.env.target_coordinate()
         #当前位置距离终点的距离
         dis = sqrt( (self.x - target_x)*(self.x - target_x) + (self.y - target_y)*(self.y - target_y))
         #print('update_before:',int(self.x), int(self.y), int(self.heading))
 
         #如果当前位置距离终点在10范围内，大步伐更新；否则小步伐更新
+        # print("before", self.coordinate(), self)
         if dis > 20:
             self.update_xyduvr(F, T, 1/120)
         else:
             self.update_xyduvr(F, T, 1/120)
+        # print("after:", self.coordinate(), self)
         #print('update_after:', int(self.x), int(self.y), int(self.heading))
-
-
-
 
     #修改引导算法：：
     def pathGuide33(self):
         res = self.pathGuide_explore()
-        #print('计算出的路径',res)
+        # print('计算出的路径',res)
 
         #下一时刻期望的位置(x_res, y_res, heading_res)
         heading_res = self.next_angular_guide4(res[0], res[1])
@@ -792,22 +763,19 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
         T = -delta_heading * T / 180
 
         #print('计算出的下一控制策略',float('%.4f' %F), float('%.4f' %T))
-        return F,T
-
-
-
-
-
+        F /= self.F_max
+        T /= self.T_max
+        return F, T
 
     # 迭代初始赋值
     def pathGuide_explore(self):
+        # print("in pathGuide_explore", self.coordinate(), self)
         target_x, target_y = self.env.target_coordinate()
         toUseList = [(target_x, target_y), (self.x, self.y)]
         pathList = []
         pathListRes = self.iter_explore(toUseList, pathList)
         pathListRes.append((target_x, target_y))
         return pathListRes
-
 
     # 迭代
     def iter_explore(self, toUseList, pathList):
@@ -825,8 +793,6 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
                 pathList = self.iter_explore(toUseList, pathList)
 
         return pathList
-
-
 
     # 充分考虑了：障碍物与线段的距离（而不是障碍物与直线的距离，两者区别很大）
     def pointToLine_Length(self, toUseList):
@@ -860,8 +826,6 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
                 # 与障碍物相交
         # 与障碍物不相交
         return True
-
-
 
     #含有输入参数startPoint[0]\ startPoint[1]表示：startPoint.x,startPoint.y(按照next_angular_guide3修改)
     # #对应垂直方向y轴正方向是0度，顺时针转   （用于连续平面--action[F,T]）

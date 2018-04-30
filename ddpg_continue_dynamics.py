@@ -1,6 +1,8 @@
+# this is for display currently!!!!
+
 from environment import OnePlayerEnv
 from policy import TestPolicy
-from world import ContinuousWorld
+from world import *
 from time import sleep
 from time import time as now
 
@@ -24,21 +26,15 @@ EPISODES = 100000
 if __name__ == "__main__":
     # env = gym.make('CartPole-v1')
 
-    w = ContinuousWorld(TestPolicy, obsticle_moving=False)
+    w = ContinuousDynamicWorld(TestPolicy, obsticle_moving=False)
     env = OnePlayerEnv(w)
-
-    state_size = 100
-    action_size = 4
-    # agent.load("./save/cartpole-dqn.h5")
-    done = False
-    batch_size = 1024
 
     # Next, we build a very simple model.
     actor = Sequential()
     actor.add(Conv2D(filters=8, kernel_size=(3, 3), activation="relu", input_shape=(1, 100, 100),
-                    data_format="channels_first"))
+                     data_format="channels_first"))
     actor.add(Conv2D(filters=2, kernel_size=(3, 3),
-                    activation="relu", data_format="channels_first"))
+                     activation="relu", data_format="channels_first"))
     # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
     actor.add(AvgPool2D(2, 2, data_format="channels_first"))
     actor.add(Flatten())
@@ -48,17 +44,17 @@ if __name__ == "__main__":
     actor.add(Activation('relu'))
     actor.add(Dense(16))
     actor.add(Activation('tanh'))
-    actor.add(Dense(1))
-    actor.add(Activation('sigmoid'))
+    actor.add(Dense(2))
+    actor.add(Activation('tanh'))
     actor.summary()
 
-    action_input = Input(shape=(1,), name='action_input')
+    action_input = Input(shape=(2,), name='action_input')
     observation_input = Input(
         shape=(1, 100, 100), name='observation_input')
     x = Conv2D(filters=8, kernel_size=(3, 3), activation="relu",
-                     data_format="channels_first")(observation_input)
+               data_format="channels_first")(observation_input)
     x = Conv2D(filters=2, kernel_size=(3, 3), activation="relu",
-                     data_format="channels_first")(x)
+               data_format="channels_first")(x)
     # x = MaxPool2D(2, 2, data_format="channels_first")(x)
     x = AvgPool2D(2, 2, data_format="channels_first")(x)
     x = Flatten()(x)
@@ -81,11 +77,22 @@ if __name__ == "__main__":
         action = self.select_action(state)
         self.recent_observation = observation
         self.recent_action = action
-
-        if random.random() < 0.1:
-            action = env.agents[0].pathGuide().angular_speed / 360
-            action = np.array([action])
+        print(self.step)
+        # first check if we are in warming up, if so,
+        # run the pre-defined path
+        # or, if the warm up phrase is over, give a
+        # guide action with 10% possibility
+        if (self.step < self.nb_steps_warmup_actor or
+                random.random() < 0.1):
+            actor = w.policy_agents[0]
+            # print("in main", actor)
+            Action = actor.action_class
+            F, T = actor.pathGuide33()
+            # print(F, T)
+            action = np.array([F, T])
+            # action = np.array([action])
             action = np.reshape(action, self.recent_action.shape)
+            # print(action.shape)
             self.recent_action = action
             return action
 
@@ -94,16 +101,17 @@ if __name__ == "__main__":
     DDPGAgent.forward = monkey_patching_forward
 
     memory = SequentialMemory(limit=100000, window_length=1)
-    agent = DDPGAgent(nb_actions=1, actor=actor, critic=critic, critic_action_input=action_input,
-                    memory=memory, nb_steps_warmup_critic=30000, nb_steps_warmup_actor=30000,
-                    gamma=.99, target_model_update=1e-3)
+    agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
+                      memory=memory, nb_steps_warmup_critic=1360, nb_steps_warmup_actor=1360,
+                      gamma=.99, target_model_update=1e-3)
 
     agent.compile([Adam(lr=1e-5), Adam(lr=1e-5)], metrics=['mae'])
-    agent.load_weights('ddpg_{}_weights.h5f'.format("continous"))
-    agent.fit(env, nb_steps=800000, visualize=False, verbose=1)
+    # agent.load_weights('ddpg_{}_weights.h5f'.format("continous"))
+    agent.fit(env, nb_steps=800000, visualize=False, verbose=2)
 
     # After training is done, we save the final weights.
-    agent.save_weights('ddpg_{}_weights.h5f'.format("continous"), overwrite=True)
+    agent.save_weights('ddpg_{}_weights.h5f'.format(
+        "continous_dynamic"), overwrite=True)
 
     # Finally, evaluate our algorithm for 5 episodes.
     agent.test(env, nb_episodes=5, visualize=False, nb_max_episode_steps=1000)
