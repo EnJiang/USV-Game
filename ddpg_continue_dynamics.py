@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     memory = SequentialMemory(limit=100000, window_length=1)
     agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
-                      memory=memory, nb_steps_warmup_critic=13600, nb_steps_warmup_actor=13600,
+                      memory=memory, nb_steps_warmup_critic=13600 * 7, nb_steps_warmup_actor=13600 * 7,
                       gamma=.99, target_model_update=1e-3)
 
     agent.compile([Adam(lr=1e-5), Adam(lr=1e-5)], metrics=['mae'])
