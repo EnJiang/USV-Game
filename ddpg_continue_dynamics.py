@@ -78,6 +78,7 @@ if __name__ == "__main__":
         self.recent_observation = observation
         self.recent_action = action
         # print(self.step)
+
         # first check if we are in warming up, if so,
         # run the pre-defined path
         # or, if the warm up phrase is over, give a
@@ -87,14 +88,15 @@ if __name__ == "__main__":
             actor = w.policy_agents[0]
             # print("in main", actor)
             Action = actor.action_class
-            F, T = actor.pathGuide33()
-            # print(F, T)
-            action = np.array([F, T])
-            # action = np.array([action])
-            action = np.reshape(action, self.recent_action.shape)
-            # print(action.shape)
-            self.recent_action = action
-            return action
+            try:
+                F, T = actor.pathGuide33()
+            except:
+                pass
+            else:
+                action = np.array([F, T])
+                action = np.reshape(action, self.recent_action.shape)
+                self.recent_action = action
+                return action
 
         return action
 
