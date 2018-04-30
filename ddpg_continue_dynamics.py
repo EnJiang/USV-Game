@@ -105,7 +105,7 @@ if __name__ == "__main__":
                       memory=memory, nb_steps_warmup_critic=13600 * 7, nb_steps_warmup_actor=13600 * 7,
                       gamma=.99, target_model_update=1e-3)
 
-    agent.compile([Adam(lr=1e-5), Adam(lr=1e-5)], metrics=['mae'])
+    agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
     # agent.load_weights('ddpg_{}_weights.h5f'.format("continous"))
     agent.fit(env, nb_steps=800000, visualize=False, verbose=2)
 
