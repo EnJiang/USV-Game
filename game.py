@@ -125,6 +125,8 @@ class MyGame(BasicGame):
         print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
 
 
+
+
 class BasicGUIGame(BasicGame):
     """基本的GUI引擎, 使用pygame"""
 
@@ -206,6 +208,30 @@ class MyContinueGame(BasicGame):
         self.arriveUnlegal = 0
         self.obsMoveBool = obsmove #默认false，障碍物不随机移动
 
+
+    #获取船体当前的状态信息 u,v,r(速度信息)
+    def get_uvr_u(self):
+        for ship in self.map.friendly_ships:
+            if ship.getuid() == 0:
+                return ship.u
+
+    def get_uvr_v(self):
+        for ship in self.map.friendly_ships:
+            if ship.getuid() == 0:
+                return ship.v
+
+    def get_uvr_r(self):
+        for ship in self.map.friendly_ships:
+            if ship.getuid() == 0:
+                return ship.r
+
+    #获取船体当前的航向
+    def get_xyh_heading(self):
+        for ship in self.map.friendly_ships:
+            if ship.getuid() == 0:
+                return ship.heading
+
+
     def update(self):
         #print('update_之前：输出map.env_matrix()函数的地图形式：：')
 
@@ -216,7 +242,7 @@ class MyContinueGame(BasicGame):
 
         # ax.set_xlim(0,100)
         # ax.set_ylim(100,0)
-        
+        #
         # import time
         # start = time.time()
         # temptestoutput = self.map.env_matrix()
@@ -226,7 +252,7 @@ class MyContinueGame(BasicGame):
         # lines = []
         # for i in range(len(np.argwhere(temptestoutput == 1))):
         #     lines.append(ax.scatter(np.argwhere(temptestoutput == 1)[i][1], np.argwhere(temptestoutput == 1)[i][0], s=6, c='g', marker='.'))   #绿色
-        
+        #
         # for i in range(len(np.argwhere(temptestoutput == -1))):
         #     lines.append(ax.scatter(np.argwhere(temptestoutput == -1)[i][1], np.argwhere(temptestoutput == -1)[i][0], s=60, c='r',marker='*'))  #红色终点
         # for i in range(len(np.argwhere(temptestoutput == 2))):

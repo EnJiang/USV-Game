@@ -270,6 +270,10 @@ class MyUSV(OneStepUSV):
         curaction = self.decision_algorithm()
         return curaction
 
+
+
+
+
 class MyContinueUSV(BasicPlaneUSV):
     '''一个策略简单的USV,派生自BasicObsUSV,用于连续环境下USV，
         认为USV可瞬间达到下一次角速度且按照speed走一帧时间的距离
@@ -484,9 +488,6 @@ class MyContinueUSV(BasicPlaneUSV):
 
 
 
-
-
-
     #起点与终点间添加一系列不与障碍物相交的中间点-方法2
     def pathGuide2(self):
         res = self.pathGuide_explore()
@@ -580,6 +581,13 @@ class MyContinueUSV(BasicPlaneUSV):
                 # 与障碍物相交
         # 与障碍物不相交
         return True
+
+
+
+
+
+
+
 
 #无附加质量和科氏力，线形阻尼
 #修改了update_xyzuvr中坐标更新，  （路径导引：左0 下90 右180 上270）
@@ -725,7 +733,8 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
         # print("after:", self.coordinate(), self)
         #print('update_after:', int(self.x), int(self.y), int(self.heading))
 
-    #修改引导算法：：
+
+    #引导算法：：
     def pathGuide33(self):
         res = self.pathGuide_explore()
         # print('计算出的路径',res)
@@ -733,8 +742,12 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
         #下一时刻期望的位置(x_res, y_res, heading_res)
         heading_res = self.next_angular_guide4(res[0], res[1])
         #注意角度的计算：之前没写*pi/180部分，哎
-        x_res = self.x - self.expectStepLen * cos(heading_res*pi/180)
-        y_res = self.y + self.expectStepLen * sin(heading_res*pi/180)
+        # x_res = self.x - self.expectStepLen * cos(heading_res*pi/180)
+        # y_res = self.y + self.expectStepLen * sin(heading_res*pi/180)
+
+        #这里可能要修改吧？ 路径导引设定 0左 下90 右180 上270， 因此期望坐标应该是：
+        x_res = self.x + self.expectStepLen * sin(heading_res * pi / 180)
+        y_res = self.y - self.expectStepLen * cos(heading_res * pi / 180)
 
         #print('路径导引下一坐标',float('%.4f' %x_res),float('%.4f'%y_res))
         #print('期望角度', heading_res)
