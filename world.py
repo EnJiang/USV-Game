@@ -358,9 +358,32 @@ class ContinuousDynamicWorld(ContinuousWorld):
 
         return game
 
+    @property
+    def obs(self):
+        board = self.game.map.env_matrix()
+        board = np.array(board)
+        board = np.reshape(board, (1, ) + board.shape)
+
+        game = self.game
+        u = game.get_uvr_u()
+        v = game.get_uvr_v()
+        r = game.get_uvr_r()
+        h = game.get_xyh_heading()
+
+        u_board = np.zeros(board.shape) + u
+        v_board = np.zeros(board.shape) + v
+        r_board = np.zeros(board.shape) + r
+        h_board = np.zeros(board.shape) + h
+
+        data = (board, u_board, v_board, r_board, h_board)
+        feature = np.concatenate(data, axis=0)
+        # print(feature.shape)
+        # exit()
+        return feature
+
     def step(self, action_n, time):
         if self.time > 2000:
-            return [self.game.map.env_matrix()], [-150], [True], []
+            return [self.obs], [-150], [True], []
 
         self.time += 1
         # print(action_n)
@@ -391,9 +414,16 @@ class ContinuousDynamicWorld(ContinuousWorld):
             return [self.game.map.env_matrix()], [-150], [True], []
 
         if self.game.arriveTarget:
-            return [self.game.map.env_matrix()], [300 - self.time / 5], [True], []
+            return [self.obs], [300 - self.time / 5], [True], []
 
         if self.game.arriveObstacle:
-            return [self.game.map.env_matrix()], [-300], [True], []
+            return [self.obs], [-300], [True], []
 
-        return [self.game.map.env_matrix()], [distance_reward], [False], []
+        return [self.obs], [distance_reward], [False], []
+
+    def reset(self):
+        # reset world
+        self.game = self.init_game(self.obsticle_moving)
+        self.policy_agents = self.game.map.friendly_ships
+        self.time = 0
+        return self.obs

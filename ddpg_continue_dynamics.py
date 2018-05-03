@@ -18,8 +18,16 @@ from keras.optimizers import Adam
 
 from rl.agents import DDPGAgent
 from rl.memory import SequentialMemory
-from rl.random import OrnsteinUhlenbeckProcess
+from rl.core import Processor
 
+
+class NpaProcessor(Processor):
+    def __init__(self):
+        pass
+
+    def process_state_batch(self, batch):
+        # print(batch.shape)
+        return batch[0]
 
 EPISODES = 100000
 
@@ -31,7 +39,7 @@ if __name__ == "__main__":
 
     # Next, we build a very simple model.
     actor = Sequential()
-    actor.add(Conv2D(filters=8, kernel_size=(3, 3), activation="relu", input_shape=(1, 100, 100),
+    actor.add(Conv2D(filters=8, kernel_size=(3, 3), activation="relu", input_shape=(5, 100, 100),
                      data_format="channels_first"))
     actor.add(Conv2D(filters=2, kernel_size=(3, 3),
                      activation="relu", data_format="channels_first"))
@@ -50,7 +58,7 @@ if __name__ == "__main__":
 
     action_input = Input(shape=(2,), name='action_input')
     observation_input = Input(
-        shape=(1, 100, 100), name='observation_input')
+        shape=(5, 100, 100), name='observation_input')
     x = Conv2D(filters=8, kernel_size=(3, 3), activation="relu",
                data_format="channels_first")(observation_input)
     x = Conv2D(filters=2, kernel_size=(3, 3), activation="relu",
@@ -99,13 +107,12 @@ if __name__ == "__main__":
                 return action
 
         return action
-
     DDPGAgent.forward = monkey_patching_forward
 
     memory = SequentialMemory(limit=100000, window_length=1)
     agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
                       memory=memory, nb_steps_warmup_critic=13600 * 7, nb_steps_warmup_actor=13600 * 7,
-                      gamma=.99, target_model_update=1e-3)
+                      gamma=.99, target_model_update=1e-3, processor=NpaProcessor())
 
     agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
     # agent.load_weights('ddpg_{}_weights.h5f'.format("continous"))
