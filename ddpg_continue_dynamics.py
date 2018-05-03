@@ -93,11 +93,9 @@ if __name__ == "__main__":
         # first check if we are in warming up, if so,
         # run the pre-defined path
         # or, if the warm up phrase is over, give a
-        # guide action with 10% possibility
-        if (self.step < self.nb_steps_warmup_actor or
-                random.random() < 0.1):
+        # random action
+        if (self.step < self.nb_steps_warmup_actor):
             actor = w.policy_agents[0]
-            # print("in main", actor)
             Action = actor.action_class
             try:
                 F, T = actor.pathGuide33()
@@ -109,6 +107,16 @@ if __name__ == "__main__":
                 self.recent_action = action
                 return action
 
+        # warm up is over...
+        if random.random() < 0.1:
+            F = (random.random() - 0.5) * 2
+            T = (random.random() - 0.5) * 2
+            action = np.array([F, T])
+            action = np.reshape(action, self.recent_action.shape)
+            self.recent_action = action
+            return action
+
+        # return the predicted one
         return action
     DDPGAgent.forward = monkey_patching_forward
 
