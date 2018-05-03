@@ -26,8 +26,9 @@ class NpaProcessor(Processor):
         pass
 
     def process_state_batch(self, batch):
-        # print(batch.shape)
-        return batch[0]
+        batch_size = batch.shape[0]
+        unit_size = batch.shape[-3: ]
+        return np.reshape(batch, (batch_size,) + unit_size)
 
 EPISODES = 100000
 
@@ -111,7 +112,7 @@ if __name__ == "__main__":
 
     memory = SequentialMemory(limit=100000, window_length=1)
     agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
-                      memory=memory, nb_steps_warmup_critic=13600 * 7, nb_steps_warmup_actor=13600 * 7,
+                      memory=memory, nb_steps_warmup_critic=136, nb_steps_warmup_actor=136,
                       gamma=.99, target_model_update=1e-3, processor=NpaProcessor())
 
     agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
