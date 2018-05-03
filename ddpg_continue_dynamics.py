@@ -108,9 +108,9 @@ if __name__ == "__main__":
                 return action
 
         # warm up is over...
-        if random.random() < 0.1:
-            F = (random.random() - 0.5) * 2
-            T = (random.random() - 0.5) * 2
+        if random.random() < 0.2:
+            F = (random.random() - 0.5)
+            T = (random.random() - 0.5)
             action = np.array([F, T])
             action = np.reshape(action, self.recent_action.shape)
             self.recent_action = action
@@ -122,10 +122,10 @@ if __name__ == "__main__":
 
     memory = SequentialMemory(limit=100000, window_length=1)
     agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
-                      memory=memory, nb_steps_warmup_critic=136 * 500, nb_steps_warmup_actor=136 * 500,
+                      memory=memory, nb_steps_warmup_critic=136 * 50, nb_steps_warmup_actor=136 * 50,
                       gamma=.99, target_model_update=1e-3, processor=NpaProcessor())
 
-    agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
+    agent.compile([Adam(lr=1e-4), Adam(lr=1e-4)], metrics=['mae'])
     # agent.load_weights('ddpg_{}_weights.h5f'.format("continous"))
     agent.fit(env, nb_steps=800000, visualize=False, verbose=2)
 
