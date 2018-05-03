@@ -28,7 +28,9 @@ class NpaProcessor(Processor):
     def process_state_batch(self, batch):
         batch_size = batch.shape[0]
         unit_size = batch.shape[-3: ]
-        return np.reshape(batch, (batch_size,) + unit_size)
+        new_size = (batch_size,) + unit_size
+        # print(new_size)
+        return np.reshape(batch, new_size)
 
 EPISODES = 100000
 

@@ -411,7 +411,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
                 y = self.game.map.height - 1
             actor.x = x
             actor.y = y
-            return [self.game.map.env_matrix()], [-150], [True], []
+            return [self.obs], [-150], [True], []
 
         if self.game.arriveTarget:
             return [self.obs], [300 - self.time / 5], [True], []
