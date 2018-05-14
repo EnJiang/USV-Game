@@ -6,6 +6,11 @@ from implementation import *
 import random
 import time
 
+
+global DEBUGPrint
+DEBUGPrint = False
+
+
 class StaticUSV(object):
     """一个静态的USV类,move方法将会留空,这表示此类USV不可行动"""
 
@@ -589,6 +594,11 @@ class MyContinueUSV(BasicPlaneUSV):
 
 
 
+
+
+
+
+
 #无附加质量和科氏力，线形阻尼
 #修改了update_xyzuvr中坐标更新，  （路径导引：左0 下90 右180 上270）
 class MyContinueDynamicsUSV(BasicPlaneUSV):
@@ -640,6 +650,7 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
 
     def getuid(self):
         return self.id
+
 
     def decision_algorithm(self):
         '''这种USV的action对象有两个属性:
@@ -896,6 +907,473 @@ class MyContinueDynamicsUSV(BasicPlaneUSV):
                 angle = (int)(arc)
                 #print('斜率对应的角度angle2-小数:', angle)
                 return angle
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#第三次尝试：加入非线性阻尼部分，USV动力学文档上的参数
+class MyContinueDynamicsUSV3(BasicPlaneUSV):
+    '''一个策略简单的USV,派生自BasicObsUSV,用于连续环境下USV，
+        认为USV可瞬间达到下一次角速度且按照speed走一帧时间的距离
+    '''
+
+
+    def __init__(self, uid, x, y, env, envDisturb, FTListValue):
+        super(MyContinueDynamicsUSV3, self).__init__(uid, x, y, env)
+        self.action_class = Action = namedtuple("action", ['F', 'T'])
+        self.radius = 1
+
+
+        self.x, self.y = x, y
+        self.heading = 0.0
+        self.u = 0.0#-10.0
+        self.v = 0.0
+        self.r = 0.0
+
+        #相关参数：m = 3980; X_u = -50; X_uu = -135; Y_v = -200; Y_vv = -2000; N_r = -3224; I = 19703; N_rrr = -3224
+
+
+        # 地球惯性系中x,y方向上的加速度（正负含方向值),根据动力学更新x和y可知：其适应左上角(0,0)的地图
+        # 所以：x向下是正方向，y向右是正方向
+        self.ax = 0.0
+        self.ay = 0.0
+
+        self.xyhList = [(self.x, self.y, self.heading)]
+        self.uvrList = [(self.u, self.v, self.r)]
+
+        self.expectStepLen = 2
+        self.F_max = 13100
+        self.T_max = 258000
+        self.FTList = []
+        self.FTLen = 0
+
+        self.envDisturb = envDisturb  # 默认True,包含环境（风浪涌流干扰）
+
+        self.FTListValue = FTListValue
+
+
+
+
+    def set_init_xyh(self,x, y, heading):
+        self.x = x
+        self.y = y
+        self.heading = heading
+
+
+    def set_init_uvr(self,u, v, r):
+        self.u = u
+        self.v = v
+        self.r = r
+
+
+    def getuid(self):
+        return self.id
+
+
+    #查看目前进行了多少次决策
+    def getFTCurrentLen(self):
+        return self.FTLen
+
+
+    def decision_algorithm(self):
+        '''这种USV的action对象有两个属性:
+        1.F：表示前进驱动力
+        2.T：表示转向'''
+        Action = self.action_class
+
+        #F= -13000;T= 2500
+        F, T = self.pathGuide33()
+
+        #F驱动力，T转向的范围限定
+        # if F < -6550: F = -6550
+        # if F > 13100: F = 13100
+        # if T < -2580: T = -2580
+        # if T > 2580: T = 2580
+        act = Action(F, T)#Action(30.0, 15.0)
+        return act
+
+
+    def update_xyduvr(self, F, T, t):
+        '''输入变量：驱动力F,转向T,更新时间t;;;根据动力学方程计算uvr的加速度'''
+
+        #这里可加一步判断F，T的范围**()
+
+        # step1:根据F,T计算uvr的加速度
+        if self.envDisturb == False: #无环境干扰（无风浪涌流）
+
+            au = self.v * self.r + (-50 / 3980) * self.u + (-135 / 3980) * self.u * abs(self.u) + (1/3980) * F
+            av = - self.u * self.r + (-200/3980) * self.v + (-2000/3980) * self.v * abs(self.v)
+            ar = (-3224/19703) * self.r + (-3224/19703) * self.r * self.r * self.r + (1/19703) * T
+
+        else:   #环境干扰（风浪涌流）
+            timeexample = time.time()
+            disturbU = 0.08 * (sin(0.2 * timeexample)) + cos(0.2 * timeexample + pi / 4) + sin(0.2 * timeexample + pi / 6)
+            disturbV = disturbU
+            disturbR = 0.1 * (sin(0.2 * timeexample)) + cos(0.2 * timeexample + pi / 4) + sin(0.2 * timeexample + pi / 6)
+            if disturbU < -0.1:disturbU = -0.1
+            if disturbU > 0.1: disturbU = 0.1
+            if disturbV < -0.1:disturbV = -0.1
+            if disturbV > 0.1: disturbV = 0.1
+            if disturbR < -0.1:disturbR = -0.1
+            if disturbR > 0.1: disturbR = 0.1
+
+
+            au = self.v * self.r + (-50 / 3980) * self.u + (-135 / 3980) * self.u * abs(self.u) + (1/3980) * (F + disturbU)
+            av = - self.u * self.r + (-200/3980) * self.v + (-2000/3980) * self.v * abs(self.v) + (1/3980) * (disturbV)
+            ar = (-3224/19703) * self.r + (-3224/19703) * self.r * self.r * self.r + (1/19703) * (T + disturbR)
+
+        # step2:根据时间t,计算更新后的uvr
+        self.u += au * t
+        self.v += av * t
+        self.r += ar * t
+        self.uvrList.append((self.u, self.v, self.r))
+
+        # step3:uvr转换为x y heading   #这里注意：self.heading*pi/180
+        ax = self.u * cos(self.heading*pi/180) - self.v * sin(self.heading*pi/180)
+        ay = self.u * sin(self.heading*pi/180) + self.v * cos(self.heading*pi/180)
+        self.ax = float("%.4f" % ax)
+        self.ay = float("%.4f" % ay)
+
+        aheading = self.r
+
+        tempx = self.y
+        tempy = self.env.width - 1 - self.x
+        tempx = tempx + float("%.4f" % (ax * t))
+        tempy = tempy + float("%.4f" % (ay * t))
+        self.x = self.env.width - 1 - tempy
+        self.y = tempx
+
+        # step4:根据时间t,计算更新后的x y heading
+        # self.x += float(ax * t)
+        # self.y += float(ay * t)
+
+        self.heading += aheading * t
+
+        self.heading = self.heading % 360 #380%360=20 (-50)%360=310
+        self.xyhList.append((self.x, self.y, self.heading))
+
+        #print('ax,ay,aheading:', list(map(float,[ax,ay,aheading])))
+
+
+
+    def move(self):
+        if len(self.FTListValue)==0:
+            action = self.decision_algorithm()
+            F, T = action.F, action.T
+        else:
+            F, T = self.FTListValue[self.FTLen][0], self.FTListValue[self.FTLen][1]
+            self.FTLen = self.FTLen + 1
+
+        F *= self.F_max
+        T *= self.T_max
+
+        target_x,target_y = self.env.target_coordinate()
+        #当前位置距离终点的距离
+        dis = sqrt( (self.x - target_x)*(self.x - target_x) + (self.y - target_y)*(self.y - target_y))
+
+
+        if DEBUGPrint == True:
+            print('update_before:',int(self.x), int(self.y), int(self.heading))
+
+        #如果当前位置距离终点在10范围内，大步伐更新；否则小步伐更新
+        if dis > 20:
+            self.update_xyduvr(F, T, 1/20)
+        else:
+            self.update_xyduvr(F, T, 1/20)
+
+        if DEBUGPrint == True:
+            print('update_after:', int(self.x), int(self.y), int(self.heading))
+
+
+
+
+
+    #修改引导算法：：
+    def pathGuide33(self):
+        res = self.pathGuide_explore()
+        if DEBUGPrint == True:
+            print('计算出的路径',res)
+
+        #下一时刻期望的位置(x_res, y_res, heading_res)
+        heading_res = self.next_angular_guide4(res[0], res[1])
+
+        #注意角度的计算：之前没写*pi/180部分，哎
+        # x_res = self.x - self.expectStepLen * cos(heading_res*pi/180)
+        # y_res = self.y + self.expectStepLen * sin(heading_res*pi/180)
+        x_res = res[1][0]
+        y_res = res[1][1]
+
+        if DEBUGPrint == True:
+            print('路径导引下一坐标',float('%.4f' %x_res),float('%.4f'%y_res))
+            print('期望角度', heading_res)
+            print('当前的角度',self.heading)
+
+        #位置限定不出界
+        if x_res < self.radius:
+            x_res = self.radius
+        if x_res > self.env.width -1 - self.radius:
+            x_res = self.env.width -1 -self.radius
+        if y_res < self.radius:
+            y_res = self.radius
+        if y_res > self.env.height -1 -self.radius:
+            y_res = self.env.height -1 -self.radius
+
+
+
+        #第一种测试F，T方法
+        F = 13100
+        T = -2580*1000
+
+        delta_heading = self.heading - heading_res
+        if delta_heading < -180:
+            delta_heading += 360
+        if delta_heading >180:
+            delta_heading -= 360
+        T = delta_heading * T / 180
+
+
+
+
+        # 第三种测试F，T方法    u_res=x_dot*cos(heading) + y_dot*sin(heading)
+        # 根据期望位置求解，先将左上角00的期望位置转化为左下角00的位置
+        # x_trans_res = y_res
+        # y_trans_res = self.env.width - 1 - x_res
+        # u_res = (x_trans_res - self.x)/(1/20) * cos(heading_res * pi /180) + (y_trans_res - self.y)/(1/20) * sin(heading_res * pi /180)
+        # u_res = float("%.4f" % u_res)
+
+
+
+
+        # 第二种测试F，T方法
+        #求期望位置与当前位置的斜率
+        # 斜率可计算(这里要适应左上角是(0,0)的状况 和 传统左下角是(0,0)有差异)
+        #slope = (startPoint[0] - endPoint[0]) / (endPoint[1] - startPoint[1])
+        # if (y_res - self.y) != 0 :
+        #     u_res = (self.x - x_res) / (y_res - self.y)
+        # else:
+        #     u_res = self.u
+        #
+        #
+        # F = (-3980.0 * self.v * self.r + 50 * self.u + 135 * abs(self.u) * self.u + 10 * 3980.0 * (u_res - self.u))
+        # F = F
+        #
+        # delta_heading = self.heading - heading_res
+        # if delta_heading < -180:
+        #     delta_heading += 360
+        # if delta_heading >180:
+        #     delta_heading -= 360
+        # T = (98515 * (-delta_heading - self.r))
+        #
+        # if F < -6550:
+        #     F = -6550
+        # if F > 13100:
+        #     F = 13100
+        # if T < -2580*100:
+        #     T = -2580*100
+        # if T > 2580*100:
+        #     T = 2580*100
+
+
+
+
+        F /= self.F_max
+        T /= self.T_max
+
+
+        self.FTList.append((F,T))
+        self.FTLen = self.FTLen + 1
+
+        if DEBUGPrint == True:
+            print('计算出的下一控制策略',float('%.4f' %F), float('%.4f' %T))
+
+        return F, T
+
+
+
+
+
+
+    # 迭代初始赋值
+    def pathGuide_explore(self):
+        target_x, target_y = self.env.target_coordinate()
+        toUseList = [(target_x, target_y), (float('%.6f' %self.x), float('%.6f' % self.y))]
+        pathList = []
+        pathListRes = self.iter_explore(toUseList, pathList)
+        pathListRes.append((target_x, target_y))
+        return pathListRes
+
+
+    # 迭代
+    def iter_explore(self, toUseList, pathList):
+        while len(toUseList) >= 2:
+            # 判断toUseList最后两点是否与障碍物相交
+            if (self.pointToLine_Length(toUseList)):
+                # 不相交，pop和insert
+                pathList.append(toUseList.pop())
+
+            else:
+                # 相交，找随机点
+                randx = round(random.uniform(0 + self.radius, self.env.width), 4)
+                print(randx)
+                randy = round(random.uniform(0 + self.radius, self.env.height), 4)
+                toUseList.insert(len(toUseList) - 1, (randx, randy))
+                pathList = self.iter_explore(toUseList, pathList)
+
+        return pathList
+
+
+
+    # 充分考虑了：障碍物与线段的距离（而不是障碍物与直线的距离，两者区别很大）
+    def pointToLine_Length(self, toUseList):
+        A = toUseList[-1]
+        B = toUseList[-2]
+
+        AB = (B[0] - A[0], B[1] - A[1])
+        ABdic = sqrt(AB[0] * AB[0] + AB[1] * AB[1])
+
+        for obs in self.env.obs:
+            P = (obs.x, obs.y)
+            AP = (P[0] - A[0], P[1] - A[1])
+
+            dot = (AP[0] * AB[0] + AP[1] * AB[1]) / (ABdic * ABdic)
+
+            AC = (AB[0] * dot, AB[1] * dot)
+            C = (AC[0] + A[0], AC[1] + A[1])
+
+            if (dot > 1):
+                BP = (P[0] - B[0], P[1] - B[1])
+                leng = sqrt(BP[0] * BP[0] + BP[1] * BP[1])
+            elif dot < 0:
+                AP = (P[0] - A[0], P[1] - A[1])
+                leng = sqrt(AP[0] * AP[0] + AP[1] * AP[1])
+            else:
+                PC = (C[0] - P[0], C[1] - P[1])
+                leng = sqrt(PC[0] * PC[0] + PC[1] * PC[1])
+
+            if (leng - obs.radius <= 0.05):
+                return False
+                # 与障碍物相交
+        # 与障碍物不相交
+        return True
+
+
+
+    #含有输入参数startPoint[0]\ startPoint[1]表示：startPoint.x,startPoint.y(按照next_angular_guide3修改)
+    # #对应垂直方向y轴正方向是0度，逆时针转（设置F常熟，T= 0，初始heading分别为0，90，180，270看USV走哪个方向）   （用于连续平面--action[F,T]）
+    #https://www.cnblogs.com/lyggqm/p/4651979.html
+    def next_angular_guide4(self, startPoint, endPoint):
+        #target_x, target_y = self.env.target_coordinate()
+        # print('USV&终点',self.x,self.y,target_x, target_y)
+
+        # USV与终点在同一垂直线上：
+        #if round(startPoint[1], 0) - round(endPoint[1], 0) == 0:
+        if int(startPoint[1]) - int(endPoint[1]) == 0:
+            if startPoint[0] < endPoint[0]:
+                angle = 180
+
+                if DEBUGPrint == True:
+                    print('斜率对应的角度angle-整数1:',angle)
+
+                return angle
+            else:
+                angle = 0
+
+                if DEBUGPrint == True:
+                    print('斜率对应的角度angle-整数2:', angle)
+
+                return angle
+
+        # USV与终点在同一水平线上：
+        #if round(startPoint[0], 0) - round(endPoint[0], 0) == 0:
+        if int(startPoint[0]) - int(endPoint[0]) == 0:
+            if startPoint[1] < endPoint[1]:
+                angle = 90#270
+
+                if DEBUGPrint == True:
+                    print('斜率对应的角度angle-整数3:', angle)
+
+                return angle
+            else:
+                angle = 270#90
+
+                if DEBUGPrint == True:
+                    print('斜率对应的角度angle-整数4:', angle)
+
+                return angle
+
+        # 假设斜率都存在（因为USV和终点都是浮点数，不可能完全相等，存在误差）
+        # 斜率可计算(这里要适应左上角是(0,0)的状况，和传统左下角是(0,0)有差异)
+        slope = (startPoint[0] - endPoint[0]) / (endPoint[1] - startPoint[1])
+        # 斜率转换为弧度
+        arc = atan(slope) / pi * 180
+        #print('arc:', arc)
+
+        # # 终点在起点的右区域
+        if endPoint[1] > startPoint[1]:
+            angle = 90 - (int)(arc)#270 + (int)(arc)
+
+            if DEBUGPrint == True:
+                print('斜率对应的角度angle1-小数:', angle)
+
+            return angle
+
+        # 终点在起点的左区域
+        else:
+            angle = 270 - (int)(arc)#90 + (int)(arc)
+
+            if DEBUGPrint == True:
+                print('斜率对应的角度angle1-小数:', angle)
+
+            return angle
+
+
+
+    # 获取当前速度方向：即self.ax 与 self.ay的向量合成，是当前速度方向,输出的结果是：与当前USV连线的点--->用到pygame里面
+    def get_curSpeedDirection(self):
+        # print('测1：', self.ax, self.ay)
+
+        # 设定速度方向画多长的线
+        PointSpeedDirectionLen = 3
+        tempTotal = sqrt(self.ax * self.ax + self.ay * self.ay)
+
+        if self.ax == 0.0:
+            after_ay = self.ay / abs(self.ay) * PointSpeedDirectionLen
+            return 0, after_ay
+
+        if self.ay == 0.0:
+            after_ax = self.ax / abs(self.ax) * PointSpeedDirectionLen
+            return after_ax, 0
+
+        x_symbol = self.ax / abs(self.ax)
+        y_symbol = self.ay / abs(self.ay)
+
+        after_ax = float("%.4f" % (x_symbol * PointSpeedDirectionLen * abs(self.ax) / tempTotal))
+        after_ay = float("%.4f" % (y_symbol * PointSpeedDirectionLen * abs(self.ay) / tempTotal))
+        # print('测试速度方向的值2：', after_ax, after_ay)
+
+        return after_ax, after_ay
+
+
+    def transferAngle(self, point, point0, angle):
+        angle = 360 - angle
+
+        trans_x = (point[0] - point0[0]) * cos(angle*pi/180) + (point[1] - point0[1])*sin(angle*pi/180) + point0[0]
+        trans_y = (point[0] - point0[0]) * sin(angle*pi/180) + (point[1] - point0[1])*cos(angle*pi/180) + point0[1]
+        trans_x = float("%.4f" % trans_x)
+        trans_y = float("%.4f" % trans_y)
+
+        return trans_x, trans_y
 
 
 
