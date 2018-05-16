@@ -263,10 +263,11 @@ if __name__ == '__main__':
 
     # 静态矩形障碍物区域（注：初始位置的设定要合法，即在map缩小obs.radius的范围）
     obs1 = CircleObstacle(uid=0, x=10.0, y=10.0, radius=1, env=test_map);test_map.addobs(obs1)
-    #obs2 = CircleObstacle(uid=1, x=40.0, y=40.0, radius=1, env=test_map);test_map.addobs(obs2)
+    obs2 = CircleObstacle(uid=1, x=40.0, y=40.0, radius=1, env=test_map);test_map.addobs(obs2)
     obs3 = CircleObstacle(uid=2, x=63.0, y=65.0, radius=1, env=test_map);test_map.addobs(obs3)
 
-    #obs4 = CircleObstacle(uid=3, x=45.0, y=64.0, radius=1, env=test_map);test_map.addobs(obs4)
+    obs4 = CircleObstacle(uid=3, x=45.0, y=64.0, radius=1, env=test_map);test_map.addobs(obs4)
+    obs5 = CircleObstacle(uid=3, x=50.0, y=75.0, radius=1, env=test_map);test_map.addobs(obs5)
 
 
     #print('game-start:初始地图：\n',test_map.env_matrix());print('\n')
@@ -278,7 +279,7 @@ if __name__ == '__main__':
 
     game.start()
 
-    print(time.time() - starttimetest)
+    #print('main函数运行时间：',time.time() - starttimetest)
 
 
 

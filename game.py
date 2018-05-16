@@ -329,11 +329,11 @@ class MyContinueGame(BasicGame):
             i += 1
             # print ('----------------------------------------------------------------------------------------')
             #print ("press any key to continue");input()
-        # print ("game over!")
-        # print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
-        # print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
-        # print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
-        print(i)
+        print ("game over!")
+        print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
+        print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
+        print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
+        print('game-update次数',i)
 
 
 
@@ -520,15 +520,16 @@ class BasicPyGame(MyContinueGame):
             #print('-----')
             #sleep(0.1)
 
-        # print("game over!")
-        # print('是否到达终点：(0表示没，1表示到达)', self.arriveTarget)
-        # print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
-        # print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
+        print("game over!")
+        print('是否到达终点：(0表示没，1表示到达)', self.arriveTarget)
+        print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
+        print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
         #
         # #print('FTList:',self.map.friendly_ships[0].FTList)
         # print('FTLen:',self.map.friendly_ships[0].FTLen)   #等于： print('FTList的长度:', len(self.map.friendly_ships[0].FTList))
+        # print(self.map.friendly_ships[0].RecordList)
 
-        print(i)
+        print('game-update次数', i)
 
         #self.gui.display.set_caption("Game Over!")
         while True:

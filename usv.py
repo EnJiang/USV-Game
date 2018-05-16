@@ -960,7 +960,18 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
 
         self.envDisturb = envDisturb  # 默认True,包含环境（风浪涌流干扰）
 
+
+        # 前段传入的参数，用于可视化观察
         self.FTListValue = FTListValue
+
+
+        # 规划路径（该随机导引路径只产生一次）,否则会造成过程中路径不断变化，影响角度的无效变化
+        # （路径的随机，造成角度一会大，一会小，造成多次迭代的失效）所以这里对随机导引路径只产生一次
+        self.pathguideList = []
+
+        # self.tUpdateCount记录按照更新位置的次数， self.RecordList记录：self.tUpdateCount%20==0 时的决策
+        self.tUpdateCount = 0
+        self.RecordList = []
 
 
 
@@ -984,6 +995,13 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
     #查看目前进行了多少次决策
     def getFTCurrentLen(self):
         return self.FTLen
+
+    # 计算当前船与目标点的距离
+    def getDistanceUSVTarget(self):
+        target_x, target_y = self.env.target_coordinate()
+        Dis = sqrt((self.x - target_x) * (self.x - target_x) + (self.y - target_y) * (self.y - target_y))
+        Dis = float("%.4f" % Dis)
+        return Dis
 
 
     def decision_algorithm(self):
@@ -1068,15 +1086,30 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
 
 
     def move(self):
-        if len(self.FTListValue)==0:
+        # 每1/20 * 5次 帧决策一次
+        # if len(self.FTListValue)==0:
+        #     if self.tUpdateCount == 0 or self.tUpdateCount % 5 == 0:
+        #         action = self.decision_algorithm()
+        #         F, T = action.F, action.T
+        #         self.RecordList.append((F, T))
+        #     else:
+        #         F = self.RecordList[-1][0]
+        #         T = self.RecordList[-1][1]
+
+        # 每1/20帧决策一次
+        if len(self.FTListValue) == 0:
             action = self.decision_algorithm()
             F, T = action.F, action.T
+
+
         else:
             F, T = self.FTListValue[self.FTLen][0], self.FTListValue[self.FTLen][1]
-            self.FTLen = self.FTLen + 1
+            if (self.tUpdateCount + 1) % 5 == 0:
+                self.FTLen = self.FTLen + 1
 
         F *= self.F_max
         T *= self.T_max
+
 
         target_x,target_y = self.env.target_coordinate()
         #当前位置距离终点的距离
@@ -1089,8 +1122,10 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
         #如果当前位置距离终点在10范围内，大步伐更新；否则小步伐更新
         if dis > 20:
             self.update_xyduvr(F, T, 1/20)
+            self.tUpdateCount = self.tUpdateCount + 1
         else:
             self.update_xyduvr(F, T, 1/20)
+            self.tUpdateCount = self.tUpdateCount + 1
 
         if DEBUGPrint == True:
             print('update_after:', int(self.x), int(self.y), int(self.heading))
@@ -1101,18 +1136,38 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
 
     #修改引导算法：：
     def pathGuide33(self):
-        res = self.pathGuide_explore()
-        if DEBUGPrint == True:
-            print('计算出的路径',res)
+        #直接使用终点计算的方式
+        # res = self.pathGuide_explore()
+        #
+        # #下一时刻期望的位置(x_res, y_res, heading_res)
+        # heading_res = self.next_angular_guide4(res[0], res[1])
+        #
+        # #注意角度的计算：之前没写*pi/180部分，哎
+        # x_res = res[1][0]
+        # y_res = res[1][1]
 
-        #下一时刻期望的位置(x_res, y_res, heading_res)
-        heading_res = self.next_angular_guide4(res[0], res[1])
+
+        if len(self.pathguideList) == 0:
+            self.pathguideList = self.pathGuide_explore()
+            del self.pathguideList[0]
+
+        if DEBUGPrint == True:
+            print('计算出的路径', self.pathguideList)
+
+        if len(self.pathguideList) > 1:
+            disCharge = sqrt ((self.x - self.pathguideList[0][0])*(self.x - self.pathguideList[0][0]) + (self.y - self.pathguideList[0][1])*(self.y - self.pathguideList[0][1]))
+            if disCharge <= 10:
+                del self.pathguideList[0]
+
+        # 下一时刻期望的位置(x_res, y_res, heading_res)
+        heading_res = self.next_angular_guide4((self.x, self.y), self.pathguideList[0])
 
         #注意角度的计算：之前没写*pi/180部分，哎
         # x_res = self.x - self.expectStepLen * cos(heading_res*pi/180)
         # y_res = self.y + self.expectStepLen * sin(heading_res*pi/180)
-        x_res = res[1][0]
-        y_res = res[1][1]
+        x_res = self.pathguideList[0][0]
+        y_res = self.pathguideList[0][1]
+
 
         if DEBUGPrint == True:
             print('路径导引下一坐标',float('%.4f' %x_res),float('%.4f'%y_res))
@@ -1132,15 +1187,15 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
 
 
         #第一种测试F，T方法
-        F = 13100
-        T = -2580*1000
-
-        delta_heading = self.heading - heading_res
-        if delta_heading < -180:
-            delta_heading += 360
-        if delta_heading >180:
-            delta_heading -= 360
-        T = delta_heading * T / 180
+        # F = 13100
+        # T = -2580*1000
+        #
+        # delta_heading = self.heading - heading_res
+        # if delta_heading < -180:
+        #     delta_heading += 360
+        # if delta_heading >180:
+        #     delta_heading -= 360
+        # T = delta_heading * T / 180
 
 
 
@@ -1159,30 +1214,89 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
         #求期望位置与当前位置的斜率
         # 斜率可计算(这里要适应左上角是(0,0)的状况 和 传统左下角是(0,0)有差异)
         #slope = (startPoint[0] - endPoint[0]) / (endPoint[1] - startPoint[1])
-        # if (y_res - self.y) != 0 :
-        #     u_res = (self.x - x_res) / (y_res - self.y)
-        # else:
-        #     u_res = self.u
-        #
-        #
-        # F = (-3980.0 * self.v * self.r + 50 * self.u + 135 * abs(self.u) * self.u + 10 * 3980.0 * (u_res - self.u))
-        # F = F
-        #
-        # delta_heading = self.heading - heading_res
-        # if delta_heading < -180:
-        #     delta_heading += 360
-        # if delta_heading >180:
-        #     delta_heading -= 360
-        # T = (98515 * (-delta_heading - self.r))
-        #
-        # if F < -6550:
-        #     F = -6550
-        # if F > 13100:
-        #     F = 13100
-        # if T < -2580*100:
-        #     T = -2580*100
-        # if T > 2580*100:
-        #     T = 2580*100
+        if (y_res - self.y) != 0 :
+            u_res = (self.x - x_res) / (y_res - self.y)
+        else:
+            u_res = self.u
+
+
+
+        # 附加限制3: 垂直时，斜率不存在，所以进行限制 (目前终点是(30，52)，但快接近目标时，转了很多才到终点)
+        if u_res > (self.env.width):
+            u_res = self.env.width - 1
+        if u_res < -(self.env.width):
+            u_res = - self.env.width + 1
+
+
+        if DEBUGPrint == True:
+            print('期望速度u_res, 当前速度self.u', u_res, self.u)
+
+            print('当前self.v,self.r', self.v, self.r)
+
+
+        # 附加限制1
+        # if 88< heading_res < 90 or 90<= heading_res <92:
+        if -0.2 < self.u < 0.2:
+            self.u = self.u * 2
+        # 终点在(60,98)时，斜率为0，所以期望速度为0，到后面速度为0，会不动了，所以这里改变了速度
+
+
+
+        F = (-3980.0 * self.v * self.r + 50 * self.u + 135 * abs(self.u) * self.u + 10 * 3980.0 * (u_res - self.u))
+        F = F
+
+
+        if heading_res == 0:
+            if self.heading > 270: heading_res = 360
+            if self.heading < 90: heading_res = 0
+
+        delta_heading = self.heading - heading_res
+        if delta_heading < -180:
+            delta_heading += 360
+        if delta_heading >180:
+            delta_heading -= 360
+
+        if DEBUGPrint == True:
+            print('角度差delta_heading', delta_heading)
+
+
+        T = (98515 * (-delta_heading - self.r))
+
+
+        # 附加限制2：必须加在目标点在其上方这种情况，加在目标点在水平右侧时会出错
+        if heading_res > 350 or heading_res < 10:
+            if abs(delta_heading) <= 6:  # 3
+                F = -abs(F)
+            if heading_res >= 358 or heading_res <= 2:
+                F = -abs(F)
+
+        if 170 <= heading_res <= 190:
+            if abs(delta_heading) <= 5:
+                F = -abs(F)
+            if 178 <= heading_res <= 182:
+                F = -abs(F)
+
+        if 80 <= heading_res <= 100:
+            if abs(delta_heading) <= 3:
+                F = -abs(F)
+            if 88 <= heading_res <= 92:
+                F = -abs(F)
+
+        if 260 <= heading_res <= 280:
+            if abs(delta_heading) <= 3:
+                F = -abs(F)
+            if 268 <= heading_res <= 272:
+                F = -abs(F)
+
+
+        if F < -6550:
+            F = -6550
+        if F > 13100:
+            F = 13100
+        if T < -2580*100:
+            T = -2580*100
+        if T > 2580*100:
+            T = 2580*100
 
 
 
@@ -1224,9 +1338,9 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
 
             else:
                 # 相交，找随机点
-                randx = round(random.uniform(0 + self.radius, self.env.width), 4)
-                print(randx)
-                randy = round(random.uniform(0 + self.radius, self.env.height), 4)
+                randx = round(random.uniform(0 + self.radius, self.env.width - 1 - self.radius*2), 4)
+                #print(randx)
+                randy = round(random.uniform(0 + self.radius, self.env.height - 1 - self.radius*2), 4)
                 toUseList.insert(len(toUseList) - 1, (randx, randy))
                 pathList = self.iter_explore(toUseList, pathList)
 
