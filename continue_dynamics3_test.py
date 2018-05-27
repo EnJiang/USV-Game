@@ -273,6 +273,7 @@ if __name__ == '__main__':
     #print('game-start:初始地图：\n',test_map.env_matrix());print('\n')
     if len(FTListValue) == 0 :
         game = MyContinueGame(obsMoveSwitch)     #obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
+        # game = BasicPyGame(obsMoveSwitch)
     else:
         game = BasicPyGame(obsMoveSwitch)
     game.set_map(test_map)
