@@ -108,9 +108,9 @@ if __name__ == "__main__":
                 return action
 
         # warm up is over...
-        if random.random() < 0.2:
-            F = (random.random() - 0.5)
-            T = (random.random() - 0.5)
+        if random.random() < 0.1:
+            F = (random.random() - 0.5) * 2
+            T = (random.random() - 0.5) * 2
             action = np.array([F, T])
             action = np.reshape(action, self.recent_action.shape)
             self.recent_action = action
