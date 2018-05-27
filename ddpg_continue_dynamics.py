@@ -42,12 +42,24 @@ if __name__ == "__main__":
 
     # Next, we build a very simple model.
     actor = Sequential()
-    actor.add(Conv2D(filters=8, kernel_size=(3, 3), activation="relu", input_shape=(5, 100, 100),
+    actor.add(Conv2D(filters=64, kernel_size=(9, 9), activation="relu", input_shape=(5, 100, 100),
                      data_format="channels_first"))
-    actor.add(Conv2D(filters=2, kernel_size=(3, 3),
+    actor.add(Conv2D(filters=64, kernel_size=(7, 7),
+                     activation="relu", data_format="channels_first"))
+    actor.add(MaxPool2D(2, 2, data_format="channels_first"))
+    
+    actor.add(Conv2D(filters=64, kernel_size=(5, 5),
+                     activation="relu", data_format="channels_first"))
+    actor.add(Conv2D(filters=64, kernel_size=(5, 5),
+                     activation="relu", data_format="channels_first"))
+    actor.add(MaxPool2D(2, 2, data_format="channels_first"))
+
+    actor.add(Conv2D(filters=64, kernel_size=(3, 3),
+                     activation="relu", data_format="channels_first"))
+    actor.add(Conv2D(filters=8, kernel_size=(3, 3),
                      activation="relu", data_format="channels_first"))
     # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
-    actor.add(AvgPool2D(2, 2, data_format="channels_first"))
+
     actor.add(Flatten())
     actor.add(Dense(256))
     actor.add(Activation('relu'))
@@ -62,20 +74,31 @@ if __name__ == "__main__":
     action_input = Input(shape=(2,), name='action_input')
     observation_input = Input(
         shape=(5, 100, 100), name='observation_input')
-    x = Conv2D(filters=8, kernel_size=(3, 3), activation="relu",
+
+    x = Conv2D(filters=64, kernel_size=(9, 9), activation="relu",
                data_format="channels_first")(observation_input)
-    x = Conv2D(filters=2, kernel_size=(3, 3), activation="relu",
+    x = Conv2D(filters=64, kernel_size=(7, 7), activation="relu",
+               data_format="channels_first")(x)
+    x = MaxPool2D(2, 2, data_format="channels_first")(x)
+
+    x = Conv2D(filters=64, kernel_size=(5, 5), activation="relu",
+               data_format="channels_first")(x)
+    x = Conv2D(filters=64, kernel_size=(5, 5), activation="relu",
+               data_format="channels_first")(x)
+    x = MaxPool2D(2, 2, data_format="channels_first")(x)
+
+    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
+               data_format="channels_first")(x)
+    x = Conv2D(filters=8, kernel_size=(3, 3), activation="relu",
                data_format="channels_first")(x)
     # x = MaxPool2D(2, 2, data_format="channels_first")(x)
-    x = AvgPool2D(2, 2, data_format="channels_first")(x)
+
     x = Flatten()(x)
-    x = Dense(255)(x)
-    x = Activation('relu')(x)
-    x = Concatenate()([x, action_input])
-    x = Dense(255)(x)
+    x = Dense(256)(x)
     x = Activation('relu')(x)
     x = Dense(32)(x)
     x = Activation('relu')(x)
+    x = Concatenate()([x, action_input])
     x = Dense(16)(x)
     x = Activation('sigmoid')(x)
     x = Dense(1)(x)
@@ -134,4 +157,4 @@ if __name__ == "__main__":
         "continous_dynamic"), overwrite=True)
 
     # Finally, evaluate our algorithm for 5 episodes.
-    agent.test(env, nb_episodes=5, visualize=False, nb_max_episode_steps=1000)
+    agent.test(env, nb_episodes=5, visualize=False, nb_max_episode_steps=2000)
