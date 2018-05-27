@@ -1087,19 +1087,19 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
 
     def move(self):
         # 每1/20 * 5次 帧决策一次
-        # if len(self.FTListValue)==0:
-        #     if self.tUpdateCount == 0 or self.tUpdateCount % 5 == 0:
-        #         action = self.decision_algorithm()
-        #         F, T = action.F, action.T
-        #         self.RecordList.append((F, T))
-        #     else:
-        #         F = self.RecordList[-1][0]
-        #         T = self.RecordList[-1][1]
+        if len(self.FTListValue)==0:
+            if self.tUpdateCount == 0 or self.tUpdateCount % 5 == 0:
+                action = self.decision_algorithm()
+                F, T = action.F, action.T
+                self.RecordList.append((F, T))
+            else:
+                F = self.RecordList[-1][0]
+                T = self.RecordList[-1][1]
 
         # 每1/20帧决策一次
-        if len(self.FTListValue) == 0:
-            action = self.decision_algorithm()
-            F, T = action.F, action.T
+        # if len(self.FTListValue) == 0:
+        #     action = self.decision_algorithm()
+        #     F, T = action.F, action.T
 
 
         else:
@@ -1325,6 +1325,7 @@ class MyContinueDynamicsUSV3(BasicPlaneUSV):
         pathList = []
         pathListRes = self.iter_explore(toUseList, pathList)
         pathListRes.append((target_x, target_y))
+
         return pathListRes
 
 
