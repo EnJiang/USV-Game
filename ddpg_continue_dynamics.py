@@ -42,15 +42,15 @@ if __name__ == "__main__":
 
     # Next, we build a very simple model.
     actor = Sequential()
-    actor.add(Conv2D(filters=64, kernel_size=(9, 9), activation="relu", input_shape=(5, 100, 100),
+    actor.add(Conv2D(filters=64, kernel_size=(3, 3), activation="relu", input_shape=(5, 100, 100),
                      data_format="channels_first"))
-    actor.add(Conv2D(filters=64, kernel_size=(7, 7),
+    actor.add(Conv2D(filters=64, kernel_size=(3, 3),
                      activation="relu", data_format="channels_first"))
     actor.add(MaxPool2D(2, 2, data_format="channels_first"))
     
-    actor.add(Conv2D(filters=64, kernel_size=(5, 5),
+    actor.add(Conv2D(filters=64, kernel_size=(3, 3),
                      activation="relu", data_format="channels_first"))
-    actor.add(Conv2D(filters=64, kernel_size=(5, 5),
+    actor.add(Conv2D(filters=64, kernel_size=(3, 3),
                      activation="relu", data_format="channels_first"))
     actor.add(MaxPool2D(2, 2, data_format="channels_first"))
 
@@ -58,11 +58,11 @@ if __name__ == "__main__":
                      activation="relu", data_format="channels_first"))
     actor.add(Conv2D(filters=8, kernel_size=(3, 3),
                      activation="relu", data_format="channels_first"))
-    # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
+    actor.add(MaxPool2D(2, 2, data_format="channels_first"))
 
     actor.add(Flatten())
-    actor.add(Dense(256))
-    actor.add(Activation('relu'))
+    # actor.add(Dense(256))
+    # actor.add(Activation('relu'))
     actor.add(Dense(32))
     actor.add(Activation('relu'))
     actor.add(Dense(16))
@@ -75,15 +75,15 @@ if __name__ == "__main__":
     observation_input = Input(
         shape=(5, 100, 100), name='observation_input')
 
-    x = Conv2D(filters=64, kernel_size=(9, 9), activation="relu",
+    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
                data_format="channels_first")(observation_input)
-    x = Conv2D(filters=64, kernel_size=(7, 7), activation="relu",
+    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
                data_format="channels_first")(x)
     x = MaxPool2D(2, 2, data_format="channels_first")(x)
 
-    x = Conv2D(filters=64, kernel_size=(5, 5), activation="relu",
+    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
                data_format="channels_first")(x)
-    x = Conv2D(filters=64, kernel_size=(5, 5), activation="relu",
+    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
                data_format="channels_first")(x)
     x = MaxPool2D(2, 2, data_format="channels_first")(x)
 
@@ -91,11 +91,11 @@ if __name__ == "__main__":
                data_format="channels_first")(x)
     x = Conv2D(filters=8, kernel_size=(3, 3), activation="relu",
                data_format="channels_first")(x)
-    # x = MaxPool2D(2, 2, data_format="channels_first")(x)
+    x = MaxPool2D(2, 2, data_format="channels_first")(x)
 
     x = Flatten()(x)
-    x = Dense(256)(x)
-    x = Activation('relu')(x)
+    # x = Dense(256)(x)
+    # x = Activation('relu')(x)
     x = Dense(32)(x)
     x = Activation('relu')(x)
     x = Concatenate()([x, action_input])
