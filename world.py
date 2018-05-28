@@ -20,10 +20,11 @@ class NpaMyUSV(MyUSV):
     def decision_algorithm(self):
         return self.last_action
 
-class _MyContinueDynamicsUSV(MyContinueDynamicsUSV):
 
-    def __init__(self, uid, x, y, env, envDisturb):
-        super().__init__(uid, x, y, env, envDisturb)
+class _MyContinueDynamicsUSV(MyContinueDynamicsUSV3):
+
+    def __init__(self, uid, x, y, env, envDisturb, FTListValue=[]):
+        super().__init__(uid, x, y, env, envDisturb, FTListValue=FTListValue)
         self.last_action = None
 
     def decision_algorithm(self):
@@ -337,7 +338,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
         # USV友艇起始点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
         if dynamicsSwitch == True:
             # envDisturb:False表示无环境干扰，True表示有环境干扰(干扰产生的数值很小很小0.1左右吧)
-            test_friendly_ship = MyContinueDynamicsUSV3(
+            test_friendly_ship = _MyContinueDynamicsUSV(
                 uid=0, x=52.0, y=50.0, env=test_map, envDisturb=envDisturbSwitch, FTListValue=[])
         else:
             test_friendly_ship = MyContinueUSV(uid=0, x=12.0, y=50.0, env=test_map)
