@@ -371,13 +371,15 @@ class ContinuousDynamicWorld(ContinuousWorld):
         # board = np.reshape(board, (1, ) + board.shape)
 
         game = self.game
-        u = game.get_uvr_u()
-        v = game.get_uvr_v()
-        r = game.get_uvr_r()
-        h = game.get_xyh_heading()
+        u = game.get_uvr_u() / 5
+        v = game.get_uvr_v() / 5
+        r = game.get_uvr_r() / 10
+        h = (game.get_xyh_heading() - 180) / 180
 
         actor = self.policy_agents[0]
         x, y = actor.coordinate()
+        # print(x, y)
+        x, y = (x - 50) / 50, (y - 50) / 50
 
         # u_board = np.zeros(board.shape) + u
         # v_board = np.zeros(board.shape) + v
@@ -387,7 +389,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
         # data = (board, u_board, v_board, r_board, h_board)
         # feature = np.concatenate(data, axis=0)
         feature = np.array([x, y, u, v, r, h])
-        # print(feature.shape)
+        # print(feature.shape, feature)
         # exit()
         return feature
 
