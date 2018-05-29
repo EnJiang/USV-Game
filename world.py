@@ -366,9 +366,9 @@ class ContinuousDynamicWorld(ContinuousWorld):
 
     @property
     def obs(self):
-        board = self.game.map.env_matrix()
-        board = np.array(board)
-        board = np.reshape(board, (1, ) + board.shape)
+        # board = self.game.map.env_matrix()
+        # board = np.array(board)
+        # board = np.reshape(board, (1, ) + board.shape)
 
         game = self.game
         u = game.get_uvr_u()
@@ -376,13 +376,17 @@ class ContinuousDynamicWorld(ContinuousWorld):
         r = game.get_uvr_r()
         h = game.get_xyh_heading()
 
-        u_board = np.zeros(board.shape) + u
-        v_board = np.zeros(board.shape) + v
-        r_board = np.zeros(board.shape) + r
-        h_board = np.zeros(board.shape) + h
+        actor = self.policy_agents[0]
+        x, y = actor.coordinate()
 
-        data = (board, u_board, v_board, r_board, h_board)
-        feature = np.concatenate(data, axis=0)
+        # u_board = np.zeros(board.shape) + u
+        # v_board = np.zeros(board.shape) + v
+        # r_board = np.zeros(board.shape) + r
+        # h_board = np.zeros(board.shape) + h
+
+        # data = (board, u_board, v_board, r_board, h_board)
+        # feature = np.concatenate(data, axis=0)
+        feature = np.array([x, y, u, v, r, h])
         # print(feature.shape)
         # exit()
         return feature

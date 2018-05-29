@@ -13,7 +13,7 @@ import gym
 from gym import wrappers
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Flatten, Input, Concatenate, Conv2D, MaxPool2D, AvgPool2D
+from keras.layers import Dense, Activation, Flatten, Input, Concatenate, Conv2D, MaxPool2D, AvgPool2D, BatchNormalization
 from keras.optimizers import Adam
 
 from rl.agents import DDPGAgent
@@ -27,9 +27,11 @@ class NpaProcessor(Processor):
 
     def process_state_batch(self, batch):
         batch_size = batch.shape[0]
-        unit_size = batch.shape[-3: ]
+        # unit_size = batch.shape[-3: ]
+        unit_size = batch.shape[-1:]
         new_size = (batch_size,) + unit_size
         # print(new_size)
+        # exit()
         return np.reshape(batch, new_size)
 
 EPISODES = 100000
@@ -42,29 +44,35 @@ if __name__ == "__main__":
 
     # Next, we build a very simple model.
     actor = Sequential()
-    actor.add(Conv2D(filters=64, kernel_size=(3, 3), activation="relu", input_shape=(5, 100, 100),
-                     data_format="channels_first"))
-    actor.add(Conv2D(filters=64, kernel_size=(3, 3),
-                     activation="relu", data_format="channels_first"))
-    actor.add(MaxPool2D(2, 2, data_format="channels_first"))
+    # actor.add(Conv2D(filters=64, kernel_size=(3, 3), activation="relu", input_shape=(5, 100, 100),
+                    #  data_format="channels_first"))
+    # actor.add(Conv2D(filters=64, kernel_size=(3, 3),
+                    #  activation="relu", data_format="channels_first"))
+    # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
     
-    actor.add(Conv2D(filters=64, kernel_size=(3, 3),
-                     activation="relu", data_format="channels_first"))
-    actor.add(Conv2D(filters=64, kernel_size=(3, 3),
-                     activation="relu", data_format="channels_first"))
-    actor.add(MaxPool2D(2, 2, data_format="channels_first"))
+    # actor.add(Conv2D(filters=64, kernel_size=(3, 3),
+                    #  activation="relu", data_format="channels_first"))
+    # actor.add(Conv2D(filters=64, kernel_size=(3, 3),
+                    #  activation="relu", data_format="channels_first"))
+    # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
 
-    actor.add(Conv2D(filters=64, kernel_size=(3, 3),
-                     activation="relu", data_format="channels_first"))
-    actor.add(Conv2D(filters=8, kernel_size=(3, 3),
-                     activation="relu", data_format="channels_first"))
-    actor.add(MaxPool2D(2, 2, data_format="channels_first"))
+    # actor.add(Conv2D(filters=64, kernel_size=(3, 3),
+                    #  activation="relu", data_format="channels_first"))
+    # actor.add(Conv2D(filters=8, kernel_size=(3, 3),
+                    #  activation="relu", data_format="channels_first"))
+    # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
 
-    actor.add(Flatten())
-    # actor.add(Dense(256))
-    # actor.add(Activation('relu'))
+    # actor.add(Flatten())
+    actor.add(Dense(256, input_shape=(6,)))
+    actor.add(Activation('selu'))
+
+    actor.add(Dense(256))
+    actor.add(Activation('selu'))
+    actor.add(Dense(256))
+    actor.add(Activation('selu'))
+
     actor.add(Dense(32))
-    actor.add(Activation('relu'))
+    actor.add(Activation('selu'))
     actor.add(Dense(16))
     actor.add(Activation('tanh'))
     actor.add(Dense(2))
@@ -73,34 +81,39 @@ if __name__ == "__main__":
 
     action_input = Input(shape=(2,), name='action_input')
     observation_input = Input(
-        shape=(5, 100, 100), name='observation_input')
+        shape=(6,), name='observation_input')
+        # shape=(5, 100, 100), name='observation_input')
 
-    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
-               data_format="channels_first")(observation_input)
-    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
-               data_format="channels_first")(x)
-    x = MaxPool2D(2, 2, data_format="channels_first")(x)
+    # x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
+    #            data_format="channels_first")(observation_input)
+    # x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
+    #            data_format="channels_first")(x)
+    # x = MaxPool2D(2, 2, data_format="channels_first")(x)
 
-    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
-               data_format="channels_first")(x)
-    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
-               data_format="channels_first")(x)
-    x = MaxPool2D(2, 2, data_format="channels_first")(x)
+    # x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
+    #            data_format="channels_first")(x)
+    # x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
+    #            data_format="channels_first")(x)
+    # x = MaxPool2D(2, 2, data_format="channels_first")(x)
 
-    x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
-               data_format="channels_first")(x)
-    x = Conv2D(filters=8, kernel_size=(3, 3), activation="relu",
-               data_format="channels_first")(x)
-    x = MaxPool2D(2, 2, data_format="channels_first")(x)
+    # x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
+    #            data_format="channels_first")(x)
+    # x = Conv2D(filters=8, kernel_size=(3, 3), activation="relu",
+    #            data_format="channels_first")(x)
+    # x = MaxPool2D(2, 2, data_format="channels_first")(x)
 
-    x = Flatten()(x)
-    # x = Dense(256)(x)
-    # x = Activation('relu')(x)
-    x = Dense(32)(x)
-    x = Activation('relu')(x)
+    # x = Flatten()(x)
+    x = Dense(256)(observation_input)
+    x = Activation('selu')(x)
+    x = Dense(256)(x)
+    x = Activation('selu')(x)
+    x = Dense(256)(x)
+    x = Activation('selu')(x)
+    x = Dense(30)(x)
+    x = Activation('selu')(x)
     x = Concatenate()([x, action_input])
     x = Dense(16)(x)
-    x = Activation('sigmoid')(x)
+    x = Activation('selu')(x)
     x = Dense(1)(x)
     x = Activation('linear')(x)
     critic = Model(inputs=[action_input, observation_input], outputs=x)
@@ -145,12 +158,12 @@ if __name__ == "__main__":
 
     memory = SequentialMemory(limit=100000, window_length=1)
     agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
-                      memory=memory, nb_steps_warmup_critic=30000, nb_steps_warmup_actor=30000,
+                      memory=memory, nb_steps_warmup_critic=50000, nb_steps_warmup_actor=50000,
                       gamma=.99, target_model_update=1e-3, processor=NpaProcessor())
 
-    agent.compile([Adam(lr=1e-4), Adam(lr=1e-4)], metrics=['mae'])
+    agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
     # agent.load_weights('ddpg_{}_weights.h5f'.format("continous"))
-    agent.fit(env, nb_steps=800000, visualize=False, verbose=2)
+    agent.fit(env, nb_steps=1000000, visualize=False, verbose=2)
 
     # After training is done, we save the final weights.
     agent.save_weights('ddpg_{}_weights.h5f'.format(
