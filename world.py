@@ -394,8 +394,10 @@ class ContinuousDynamicWorld(ContinuousWorld):
     def step(self, action_n, time):
         actor = self.policy_agents[0]
 
+        distance_punish_rate = 50
+
         if self.time > 2000:
-            return [self.obs], [-1500 - actor.getDistanceUSVTarget() * 10], [True], []
+            return [self.obs], [-1500 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
 
         self.time += 1
         # print(action_n)
@@ -423,13 +425,13 @@ class ContinuousDynamicWorld(ContinuousWorld):
                 y = self.game.map.height - 1
             actor.x = x
             actor.y = y
-            return [self.obs], [-1500 - actor.getDistanceUSVTarget() * 10], [True], []
+            return [self.obs], [-1500 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
 
         if self.game.arriveTarget:
             return [self.obs], [10000 - self.time / 5], [True], []
 
         if self.game.arriveObstacle:
-            return [self.obs], [-3000 - actor.getDistanceUSVTarget() * 10], [True], []
+            return [self.obs], [-3000 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
 
         return [self.obs], [distance_reward], [False], []
 
