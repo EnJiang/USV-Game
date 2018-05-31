@@ -356,7 +356,7 @@ class BasicPyGame(MyContinueGame):
 
 
     def gui_init(self):
-        self.gui_screen = self.gui.display.set_mode((1000, 1000), 0, 32)
+        self.gui_screen = self.gui.display.set_mode((800, 800), 0, 32)
         self.gui.display.set_caption("USV")
 
 
@@ -434,7 +434,7 @@ class BasicPyGame(MyContinueGame):
     def update(self):
 
         x_unit = 800.0 / self.map.width
-        y_unit = 600.0 / self.map.height
+        y_unit = 800.0 / self.map.height
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -455,8 +455,12 @@ class BasicPyGame(MyContinueGame):
                 #获取船体当前加速度ship.get_curSpeedDirection()，是左下角是(0,0)的情况，
                 #但这里计算的坐标是左上角是(0,0)的情况，所以变换关系是：ship.x - speedDirectPosy， ship.y + speedDirectPosx
                 speedDirectPosx, speedDirectPosy = ship.get_curSpeedDirection()
-                af_speedDirectPosx = (ship.x - speedDirectPosy) * x_unit
-                af_speedDirectPosy = (ship.y + speedDirectPosx) * y_unit
+                # af_speedDirectPosx = (ship.x - speedDirectPosy) * x_unit
+                # af_speedDirectPosy = (ship.y + speedDirectPosx) * y_unit
+
+                af_speedDirectPosx = (ship.x - speedDirectPosx) * x_unit
+                af_speedDirectPosy = (ship.y + speedDirectPosy) * y_unit
+
                 #加速度导引线
                 self.gui.draw.line(self.gui_screen, (0, 255, 0), [ship.y * y_unit, ship.x * x_unit],[af_speedDirectPosy, af_speedDirectPosx], 1)
 
@@ -524,14 +528,14 @@ class BasicPyGame(MyContinueGame):
         print('是否到达终点：(0表示没，1表示到达)', self.arriveTarget)
         print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
         print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
-        #
+
         # #print('FTList:',self.map.friendly_ships[0].FTList)
         # print('FTLen:',self.map.friendly_ships[0].FTLen)   #等于： print('FTList的长度:', len(self.map.friendly_ships[0].FTList))
         # print(self.map.friendly_ships[0].RecordList)
 
         print('game-update次数', i)
 
-        #self.gui.display.set_caption("Game Over!")
+        self.gui.display.set_caption("Game Over!")
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT:

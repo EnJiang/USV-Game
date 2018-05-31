@@ -3,7 +3,7 @@
 
 from game import BasicPyGame, MyContinueGame
 from map_ import MyContinueObsMap
-from usv import MyContinueUSV, MyContinueDynamicsUSV3
+from usv import MyContinueUSV, MyContinueDynamicsUSV3,MyContinueDynamicsUSV3FixedFT
 from CircleObstacle import CircleObstacle
 
 import time
@@ -254,7 +254,10 @@ if __name__ == '__main__':
 
     # USV友艇起始点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
     if dynamicsSwitch == True:
-        test_friendly_ship = MyContinueDynamicsUSV3(uid=0, x=52.0, y=50.0, env=test_map, envDisturb=envDisturbSwitch, FTListValue = FTListValue)    #envDisturb:False表示无环境干扰，True表示有环境干扰(干扰产生的数值很小很小0.1左右吧)
+        # test_friendly_ship = MyContinueDynamicsUSV3(uid=0, x=52.0, y=50.0, env=test_map, envDisturb=envDisturbSwitch, FTListValue = FTListValue)    #envDisturb:False表示无环境干扰，True表示有环境干扰(干扰产生的数值很小很小0.1左右吧)
+        # test_friendly_ship.set_init_usv_pos(52.0, 50.0)
+
+        test_friendly_ship = MyContinueDynamicsUSV3FixedFT(uid=0, x=52.0, y=50.0, env=test_map, envDisturb=envDisturbSwitch,FTListValue=FTListValue)
     else:
         test_friendly_ship = MyContinueUSV(uid=0, x=12.0, y=50.0, env=test_map)
     test_friendly_ship.set_as_friendly()
@@ -272,14 +275,13 @@ if __name__ == '__main__':
 
     #print('game-start:初始地图：\n',test_map.env_matrix());print('\n')
     if len(FTListValue) == 0 :
-        game = MyContinueGame(obsMoveSwitch)     #obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
-        # game = BasicPyGame(obsMoveSwitch)
+        # game = MyContinueGame(obsMoveSwitch)     #obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
+        game = BasicPyGame(obsMoveSwitch)
     else:
         game = BasicPyGame(obsMoveSwitch)
     game.set_map(test_map)
 
     game.start()
-
     #print('main函数运行时间：',time.time() - starttimetest)
 
 
