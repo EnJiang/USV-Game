@@ -124,6 +124,7 @@ class MyUSV(OneStepUSV):
         curaction = self.decision_algorithm()
         return curaction
 
+
 class MyGame(BasicGame):
     def __init__(self):
         super(MyGame, self).__init__()

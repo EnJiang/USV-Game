@@ -16,6 +16,7 @@ if __name__ == '__main__':
     CircleObstacle.py:        圆形障碍物
     continue_obsmap_test.py:  主函数
     '''
+
     test_map = MyContinueObsMap(100, 100)
     test_map.set_target(18.0, 18.0)  #目标终点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
 

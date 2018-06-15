@@ -117,6 +117,11 @@ class MyContinueObsMap(BasicMap):
     def addobs(self, obstacle):
         self.obs.append(obstacle)
 
+
+    def set_target_radius(self, radiusValue):
+        self.target_radius = radiusValue
+
+
     # 输出全局地图
     def env_matrix(self):
         env_np = np.zeros((self.width, self.height))
