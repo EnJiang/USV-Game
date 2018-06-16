@@ -162,12 +162,12 @@ if __name__ == "__main__":
                       gamma=.99, target_model_update=1e-3, processor=NpaProcessor())
 
     agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
-    # agent.load_weights('ddpg_{}_weights.h5f'.format("continous"))
-    agent.fit(env, nb_steps=1000000, visualize=False, verbose=2)
+    agent.load_weights('ddpg_{}_weights.h5f'.format("continous_dynamic"))
+    # agent.fit(env, nb_steps=1000000, visualize=False, verbose=2)
 
     # After training is done, we save the final weights.
-    agent.save_weights('ddpg_{}_weights.h5f'.format(
-        "continous_dynamic"), overwrite=True)
+    # agent.save_weights('ddpg_{}_weights.h5f'.format(
+        # "continous_dynamic"), overwrite=True)
 
     # Finally, evaluate our algorithm for 5 episodes.
     agent.test(env, nb_episodes=5, visualize=False, nb_max_episode_steps=2000)

@@ -1,7 +1,7 @@
 import copy
 from collections import namedtuple
 
-from game import BasicGame, MyContinueGame
+from game import BasicGame, MyContinueGame, BasicPyGame
 from map_ import BasicMap, MyContinueObsMap
 from usv import *
 from plane_test import MyUSV, MyGame
@@ -358,8 +358,8 @@ class ContinuousDynamicWorld(ContinuousWorld):
         obs5 = CircleObstacle(uid=3, x=50.0, y=75.0, radius=1, env=test_map)
         test_map.addobs(obs5)
 
-        game = MyContinueGame(obsMoveSwitch)
-        # game = BasicPyGame(obsMoveSwitch)
+        # game = MyContinueGame(obsMoveSwitch)
+        game = BasicPyGame(obsMoveSwitch)
         game.set_map(test_map)
 
         return game
