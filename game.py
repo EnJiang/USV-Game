@@ -688,7 +688,7 @@ class PyGameXSWorld(MyContinueGame):
             self.update()
             i += 1
             #print('-----')
-            #sleep(0.1)
+            sleep(0.1)
 
         print("game over!")
         print('是否到达终点：(0表示没，1表示到达)', self.arriveTarget)

@@ -59,8 +59,8 @@ if __name__ == '__main__':
 
 
     if len(FTListValue) == 0 :
-        game = MyContinueGameModify(obsMoveSwitch)     #obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
-        # game = PyGameXSWorld(obsMoveSwitch)  # obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
+        # game = MyContinueGameModify(obsMoveSwitch)     #obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
+        game = PyGameXSWorld(obsMoveSwitch)  # obsMoveSwitch: False表示障碍物不随机移动; True表示障碍物随机移动
     else:
         game = BasicPyGame(obsMoveSwitch)
     game.set_map(test_map)
