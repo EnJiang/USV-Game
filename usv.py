@@ -596,6 +596,61 @@ class MyContinueUSV(BasicPlaneUSV):
 
 
 
+# 测试DDPG网络的有效性：调3*3地图上，固定angular_speed和固定speed值
+# 对应continue_obsmap_test_smallmap
+# CoutinuePyGame  	 CoutinueNoPyGame 	MyContinueUSV_SmallMap
+class MyContinueUSV_SmallMap(BasicPlaneUSV):
+    '''一个策略简单的USV,派生自BasicObsUSV,用于连续环境下USV，
+        认为USV可瞬间达到下一次角速度且按照speed走一帧时间的距离
+    '''
+    def __init__(self, uid, x, y, env):
+        super(MyContinueUSV_SmallMap, self).__init__(uid, x, y, env)
+        self.action_class = Action = namedtuple("action", ['stay', 'clockwise', 'angular_speed', 'speed'])
+        self.speed = 1
+        self.radius = 1
+
+        self.angular_speed_max = 5
+        self.speed_max = 0.3
+
+    def getuid(self):
+        return self.id
+
+    def set_usv_radius(self, radiusValue):
+        self.radius = radiusValue
+
+    def set_usv_speed(self, speedValue):
+        self.speed = speedValue
+
+    def update_coordinate(self):  # x轴负方向是0度，y正方向是90度，(按照左上角是0，0更新坐标),所以如下计算
+        self.y -= cos(pi * self.direction / 180) * self.speed
+        self.x -= sin(pi * self.direction / 180) * self.speed
+
+    def decision_algorithm(self):
+        '''这种USV的action对象有四个属性:
+        1.stay,如果设为True,代表USV决定不行动,后面的参数被忽略;
+        2.clockwise,转动方向是否是顺时针;
+        3.angular_speed角速度;
+        4.speed速度.
+        如果stay参数为False,USV将会根据clockwise的指示转动angular_speed*t(一帧时间)度,然后前进当前的速度*t的距离'''
+        # Action = self.action_class
+        # act = Action(False, False, 2.0, 1.0)
+
+
+        # 归一化后的
+        decision_angular_speed, decision_speed = 2.9 / 5, - 0.1 / 0.3
+
+        angular_speed_value = decision_angular_speed * self.angular_speed_max
+        speed_value = decision_speed * self.speed_max
+
+        Action = self.action_class
+        act = Action(False, False, angular_speed_value, speed_value)
+
+        # act = self.pathGuide()
+        # act = self.pathGuide2()
+        return act
+
+
+
 
 
 

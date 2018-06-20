@@ -729,3 +729,144 @@ class MyContinueGameModify(MyContinueGame):
                 self.arriveUnlegal = 1
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#测试DDPG网络的有效性：调3*3地图上，固定angular_speed和固定speed值
+#对应continue_obsmap_test_smallmap
+#CoutinuePyGame  	 CoutinueNoPyGame 	MyContinueUSV_SmallMap
+class CoutinuePyGame(MyContinueGameModify):
+    """基本的GUI引擎, 使用pygame"""
+
+    def __init__(self, obsmove):
+        super(CoutinuePyGame, self).__init__(obsmove)
+        self.gui = pygame
+        self.gui_init()
+
+        self.obsMoveBool = obsmove  # 默认false，障碍物不随机移动
+
+
+    def gui_init(self):
+        self.gui_screen = self.gui.display.set_mode((600, 600), 0, 32)
+        self.gui.display.set_caption("USV")
+
+
+
+    def update(self):
+        x_unit = 600.0 / self.map.width
+        y_unit = 600.0 / self.map.height
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                exit()
+
+        self.gui_screen.fill((99, 184, 255))  # (255,255,255)白色填充
+
+
+        for ship in self.map.friendly_ships:
+            ship.move()
+            self.gui.draw.circle(self.gui_screen, (0,255,0), [int(ship.y * y_unit), int(ship.x * x_unit)],int(ship.radius * x_unit))
+
+            self.check_target()
+            self.check_obstacle()
+            self.check_legal()
+
+
+        if self.obsMoveBool == False:
+            for obstacle in self.map.obs:
+                # 画障碍物: 中心点 + radius
+                self.gui.draw.circle(self.gui_screen, (0, 0, 0), [int(obstacle.y*y_unit), int(obstacle.x*x_unit)], int(obstacle.radius*x_unit))
+            pass
+
+        else:
+            #添加圆形障碍物的移动（需在其移动方法中添加对所随机移动的下一位置的合法性判断，若下一位置不合法则保持原位置）
+            for obstacle in self.map.obs:
+               obstacle.obsRandomMove()
+               # 画障碍物: 中心点 + radius
+               self.gui.draw.circle(self.gui_screen, (0, 0, 0), [int(obstacle.y*y_unit), int(obstacle.x*x_unit)], int(obstacle.radius*x_unit))
+
+        # 画终点：中心点 + radius
+        target_x, target_y = self.map.target_coordinate()
+        self.gui.draw.circle(self.gui_screen, (255, 0, 0), [int(target_y * y_unit), int(target_x * x_unit)],int(self.map.target_radius * x_unit))
+
+        # 更新
+        self.gui.display.update()
+
+
+
+    def start(self):
+        i = 0
+        while not self.is_game_over():
+            self.update()
+            i += 1
+            #print('-----')
+            #sleep(0.1)
+
+        print("更新次数：", i)
+        print("game over!")
+        print('是否到达终点：(0表示没，1表示到达)', self.arriveTarget)
+        print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
+        print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
+
+
+        self.gui.display.set_caption("Game Over!")
+        while True:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    exit()
+            self.gui.display.update()
+
+
+class CoutinueNoPyGame(MyContinueGameModify):
+    """3*3小地图上，不使用可视化"""
+
+
+    def update(self):
+
+        for ship in self.map.friendly_ships:
+            ship.move()
+
+            self.check_target()
+            self.check_obstacle()
+            self.check_legal()
+
+
+        if self.obsMoveBool == False:
+            pass
+
+        else:
+            #添加圆形障碍物的移动（需在其移动方法中添加对所随机移动的下一位置的合法性判断，若下一位置不合法则保持原位置）
+            for obstacle in self.map.obs:
+               obstacle.obsRandomMove()
+
+
+
+    def start(self):
+        i=0
+        while not self.is_game_over():
+            self.update()
+            i += 1
+
+        print("更新次数：", i)
+        print ("game over!")
+        print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
+        print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
+        print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
+
+
