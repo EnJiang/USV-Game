@@ -615,6 +615,28 @@ class MyContinueUSV_SmallMap(BasicPlaneUSV):
     def getuid(self):
         return self.id
 
+
+
+
+    # 便于RL学习时获取相关信息
+    # a.计算当前船与目标点的距离
+    def getDistanceUSVTarget(self):
+        target_x, target_y = self.env.target_coordinate()
+        Dis = sqrt((self.x - target_x) * (self.x - target_x) + (self.y - target_y) * (self.y - target_y))
+        Dis = float("%.4f" % Dis)
+        return Dis
+
+    # b.当前船的位置
+    def getCurrentUSVPos(self):
+        return float("%.4f" % self.x), float("%.4f" % self.y)
+
+    # c.当前船的角加速度&速度
+    def getCurrentUSVAngularAndSpeed(self):
+        return self.angular_speed, self.speed
+
+
+
+
     def set_usv_radius(self, radiusValue):
         self.radius = radiusValue
 
