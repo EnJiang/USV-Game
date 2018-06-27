@@ -816,7 +816,7 @@ class CoutinuePyGame(MyContinueGameModify):
             self.update()
             i += 1
             #print('-----')
-            #sleep(0.1)
+            sleep(0.1)
 
         print("更新次数：", i)
         print("game over!")

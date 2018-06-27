@@ -42,8 +42,8 @@ if __name__ == '__main__':
 
 
     #是否可视化
-    # game = CoutinuePyGame(False)    #False表示障碍物不随机移动; True表示障碍物随机移动
-    game = CoutinueNoPyGame(False)
+    game = CoutinuePyGame(False)    #False表示障碍物不随机移动; True表示障碍物随机移动
+    # game = CoutinueNoPyGame(False)
 
 
     game.set_map(test_map)

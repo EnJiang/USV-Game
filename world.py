@@ -308,13 +308,17 @@ class ContinuousWorld(World):
         return self.game.map.env_matrix()
 
 
-class _MyContinueDynamicsUSV3XSWorld(MyContinueDynamicsUSV3XSWorld):
+class _MyContinueUSV_SmallMap(MyContinueUSV_SmallMap):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.last_action = None
     
     def decision_algorithm(self):
-        return self.last_action
+        Action = self.action_class
+        angular_speed_value = self.last_action[0] * self.angular_speed_max
+        speed_value = self.last_action[1] * self.speed_max
+        act = Action(False, False, angular_speed_value, speed_value)
+        return act
 
 class ContinuousDynamicWorld(ContinuousWorld):
     def __init__(self, Policy, obsticle_moving):
@@ -334,37 +338,25 @@ class ContinuousDynamicWorld(ContinuousWorld):
 
     def init_game(self, obsticle_moving):
 
-        #开关控制switch
-        dynamicsSwitch = True  # True表示加入动力学方程，False表示不加动力学方程（决策Action内容不同）
-        envDisturbSwitch = False  # False表示无环境干扰，True表示有环境干扰(干扰产生的数值很小很小的，影响不大)
-        obsMoveSwitch = obsticle_moving  # False表示障碍物不随机移动; True表示障碍物随机移动
-
-        '''开始游戏'''
         test_map = MyContinueObsMap(3.0, 3.0)
+        # 目标终点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
         test_map.set_target(0.50, 2.50)
         test_map.set_target_radius(0.1)
 
         # USV友艇起始点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
-        if dynamicsSwitch == True:
-            test_friendly_ship = _MyContinueDynamicsUSV3XSWorld(
-                uid=0, x=2.50, y=0.50, env=test_map, envDisturb=envDisturbSwitch, FTListValue=[])
-            #envDisturb:False表示无环境干扰，True表示有环境干扰(干扰产生的数值很小很小0.1左右吧)
-
-            test_friendly_ship.set_usv_radius(0.1)
-            test_friendly_ship.set_init_usv_pos(2.50, 0.50)
-
-        else:
-            test_friendly_ship = MyContinueUSV(uid=0, x=2.50, y=0.50, env=test_map)
-
+        test_friendly_ship = _MyContinueUSV_SmallMap(
+            uid=0, x=2.50, y=0.50, env=test_map)
         test_friendly_ship.set_as_friendly()
         test_map.add_ship(test_friendly_ship)
+        test_friendly_ship.set_usv_radius(0.1)
+        test_friendly_ship.set_usv_speed(0.1)
 
         # 静态矩形障碍物区域（注：初始位置的设定要合法，即在map缩小obs.radius的范围）
         obs1 = CircleObstacle(uid=0, x=0.85, y=1.00, radius=0.1, env=test_map)
         test_map.addobs(obs1)
         obs2 = CircleObstacle(uid=1, x=1.50, y=0.50, radius=0.1, env=test_map)
         test_map.addobs(obs2)
-        obs3 = CircleObstacle(uid=2, x=1.60, y=1.40, radius=0.2, env=test_map)
+        obs3 = CircleObstacle(uid=2, x=1.60, y=1.40, radius=0.1, env=test_map)
         test_map.addobs(obs3)
         obs4 = CircleObstacle(uid=3, x=1.10, y=1.80, radius=0.1, env=test_map)
         test_map.addobs(obs4)
@@ -373,17 +365,16 @@ class ContinuousDynamicWorld(ContinuousWorld):
 
         obs6 = CircleObstacle(uid=4, x=2.00, y=1.00, radius=0.1, env=test_map)
         test_map.addobs(obs6)
-        obs7 = CircleObstacle(uid=5, x=2.30, y=1.80, radius=0.2, env=test_map)
-        test_map.addobs(obs7)
+        # obs7 = CircleObstacle(uid=5, x=2.30, y=1.80, radius=0.2, env=test_map);test_map.addobs(obs7)
         obs8 = CircleObstacle(uid=6, x=1.80, y=2.40, radius=0.2, env=test_map)
         test_map.addobs(obs8)
         obs9 = CircleObstacle(uid=6, x=1.20, y=2.60, radius=0.1, env=test_map)
         test_map.addobs(obs9)
 
+        #是否可视化
+        game = CoutinuePyGame(False)  # False表示障碍物不随机移动; True表示障碍物随机移动
+        # game = CoutinueNoPyGame(False)
 
-        # game = MyContinueGame(obsMoveSwitch)
-        # game = PyGameXSWorld(obsMoveSwitch)
-        game = MyContinueGameModify(obsMoveSwitch)
         game.set_map(test_map)
 
         return game
@@ -394,11 +385,11 @@ class ContinuousDynamicWorld(ContinuousWorld):
         # board = np.array(board)
         # board = np.reshape(board, (1, ) + board.shape)
 
-        game = self.game
-        u = game.get_uvr_u() / 5
-        v = game.get_uvr_v() / 5
-        r = game.get_uvr_r() / 10
-        h = (game.get_xyh_heading() - 180) / 180
+        # game = self.game
+        # u = game.get_uvr_u() / 5
+        # v = game.get_uvr_v() / 5
+        # r = game.get_uvr_r() / 10
+        # h = (game.get_xyh_heading() - 180) / 180
 
         actor = self.policy_agents[0]
         x, y = actor.coordinate()
@@ -412,7 +403,8 @@ class ContinuousDynamicWorld(ContinuousWorld):
 
         # data = (board, u_board, v_board, r_board, h_board)
         # feature = np.concatenate(data, axis=0)
-        feature = np.array([x, y, u, v, r, h])
+        # feature = np.array([x, y, u, v, r, h])
+        feature = np.array([x, y])
         self.last_feature = feature
         # print(feature.shape, feature)
         # exit()
@@ -429,10 +421,10 @@ class ContinuousDynamicWorld(ContinuousWorld):
     def step(self, action_n, time):
         actor = self.policy_agents[0]
 
-        distance_punish_rate = 500
+        distance_punish_rate = 50
 
         if self.time > 2000:
-            return [self.obs], [-1500 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
+            return [self.obs], [-150 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
 
         self.time += 1
         # print(action_n)
@@ -460,13 +452,13 @@ class ContinuousDynamicWorld(ContinuousWorld):
                 y = self.game.map.height - 1
             actor.x = x
             actor.y = y
-            return [self.obs], [-1500 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
+            return [self.obs], [-150 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
 
         if self.game.arriveTarget:
-            return [self.obs], [10000 - self.time], [True], []
+            return [self.obs], [1000 - self.time], [True], []
 
         if self.game.arriveObstacle:
-            return [self.obs], [-3000 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
+            return [self.obs], [-300 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
 
         return [self.obs], [distance_reward], [False], []
 

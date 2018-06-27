@@ -13,14 +13,16 @@ import gym
 from gym import wrappers
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Flatten, Input, Concatenate, Conv2D, MaxPool2D, AvgPool2D, BatchNormalization
+from keras.layers import Dense, Activation, Flatten, Input, Concatenate, Conv2D
+from keras.layers import MaxPool2D, AvgPool2D, BatchNormalization, Dropout
+import keras.regularizers as regularizers
 from keras.optimizers import Adam
 
 from rl.agents import DDPGAgent
 from rl.memory import SequentialMemory
 from rl.core import Processor
 from rl.policy import GreedyQPolicy
-
+from rl.random import OrnsteinUhlenbeckProcess
 
 class NpaProcessor(Processor):
     def __init__(self):
@@ -64,26 +66,27 @@ if __name__ == "__main__":
     # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
 
     # actor.add(Flatten())
-    actor.add(Dense(1024, input_shape=(12,)))
+    actor.add(Dense(1024, input_shape=(4,)))
     actor.add(Activation('relu'))
-    actor.add(Dense(1024))
+    actor.add(Dense(1024, kernel_regularizer=regularizers.l2(0.01)))
     actor.add(Activation('relu'))
-    actor.add(Dense(1024))
+    actor.add(Dropout(0.5))
+    actor.add(Dense(1024, kernel_regularizer=regularizers.l2(0.01)))
     actor.add(Activation('relu'))
-    actor.add(Dense(1024))
+    actor.add(Dense(1024, kernel_regularizer=regularizers.l2(0.01)))
     actor.add(Activation('relu'))
-    actor.add(Dense(1024))
+    actor.add(Dropout(0.5))
+    actor.add(Dense(1024, kernel_regularizer=regularizers.l2(0.01)))
     actor.add(Activation('relu'))
-
-    actor.add(Dense(32))
-    actor.add(Activation('relu'))
-    actor.add(Dense(2))
+    actor.add(Dense(32, kernel_regularizer=regularizers.l2(0.01)))
+    actor.add(Activation('sigmoid'))
+    actor.add(Dense(2, kernel_regularizer=regularizers.l2(0.01)))
     actor.add(Activation('tanh'))
     actor.summary()
 
     action_input = Input(shape=(2,), name='action_input')
     observation_input = Input(
-        shape=(12,), name='observation_input')
+        shape=(4,), name='observation_input')
         # shape=(5, 100, 100), name='observation_input')
 
     # x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
@@ -105,23 +108,25 @@ if __name__ == "__main__":
     # x = MaxPool2D(2, 2, data_format="channels_first")(x)
 
     # x = Flatten()(x)
-    x = Dense(256)(observation_input)
+    x = Dense(1024)(observation_input)
     x = Activation('relu')(x)
-    x = Dense(256)(x)
+    x = Dense(1024, kernel_regularizer=regularizers.l2(0.01))(x)
     x = Activation('relu')(x)
-    x = Dense(256)(x)
+    x = Dropout(0.5)(x)
+    x = Dense(1024, kernel_regularizer=regularizers.l2(0.01))(x)
     x = Activation('relu')(x)
-    x = Dense(256)(x)
+    x = Dense(1024, kernel_regularizer=regularizers.l2(0.01))(x)
     x = Activation('relu')(x)
-    x = Dense(30)(x)
+    x = Dropout(0.5)(x)
+    x = Dense(254)(x)
     x = Activation('relu')(x)
     x = Concatenate()([x, action_input])
-    x = Dense(256)(x)
+    x = Dense(256, kernel_regularizer=regularizers.l2(0.01))(x)
     x = Activation('relu')(x)
-    x = Dense(256)(x)
+    x = Dense(256, kernel_regularizer=regularizers.l2(0.01))(x)
     x = Activation('relu')(x)
-    x = Dense(32)(x)
-    x = Activation('relu')(x)
+    x = Dense(32, kernel_regularizer=regularizers.l2(0.01))(x)
+    x = Activation('sigmoid')(x)
     x = Dense(1)(x)
     x = Activation('linear')(x)
     critic = Model(inputs=[action_input, observation_input], outputs=x)
@@ -146,7 +151,8 @@ if __name__ == "__main__":
                 actor = w.policy_agents[0]
                 Action = actor.action_class
                 try:
-                    F, T = actor.pathGuide33()
+                    # F, T = actor.pathGuide33()
+                    F, T = 2.9 / 5, - 0.1 / 0.3
                 except:
                     pass
                 else:
@@ -156,7 +162,7 @@ if __name__ == "__main__":
                     return action
 
             # warm up is over...
-            if self.training and random.random() < 0.05:
+            if self.training and random.random() < 0.15:
                 F = (random.random() - 0.5) * 2
                 T = (random.random() - 0.5) * 2
                 action = np.array([F, T])
@@ -165,21 +171,24 @@ if __name__ == "__main__":
                 return action
 
             # return the predicted one
+            print(action)
             return action
 
+    random_process = OrnsteinUhlenbeckProcess(
+        size=2, theta=.15, mu=0., sigma=.3)
     memory = SequentialMemory(limit=100000, window_length=1)
-    agent = MyDDPG(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
-                      memory=memory, nb_steps_warmup_critic=500, nb_steps_warmup_actor=500,
-                      gamma=.99, target_model_update=1e-3, processor=NpaProcessor())
+    agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
+                      memory=memory, nb_steps_warmup_critic=5000, nb_steps_warmup_actor=5000,
+                      gamma=.9, target_model_update=1e-3, processor=NpaProcessor(), random_process=random_process)
 
-    agent.compile([Adam(lr=1e-4), Adam(lr=1e-4)], metrics=['mse'])
+    agent.compile([Adam(lr=1e-4), Adam(lr=1e-4)], metrics=['mae'])
 
     # agent.load_weights('ddpg_{}_weights.h5f'.format("continous_dynamic"))
-    agent.fit(env, nb_steps=100000, visualize=False, verbose=2)
+    agent.fit(env, nb_steps=30000, visualize=False, verbose=2)
 
     # After training is done, we save the final weights.
     agent.save_weights('ddpg_{}_weights.h5f'.format(
         "continous_dynamic"), overwrite=True)
 
     # Finally, evaluate our algorithm for 5 episodes.
-    agent.test(env, nb_episodes=100, visualize=False, nb_max_episode_steps=2000)
+    agent.test(env, nb_episodes=3, visualize=False, nb_max_episode_steps=2000)
