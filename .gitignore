@@ -95,4 +95,4 @@ gen
 
 
 ####=== model file ===###
-.h5f
+*.h5f
