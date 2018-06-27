@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
     agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
 
-    # agent.load_weights('ddpg_{}_weights.h5f'.format("continous_dynamic"))
+    agent.load_weights('ddpg_{}_weights.h5f'.format("continous_dynamic"))
     agent.fit(env, nb_steps=100000, visualize=False, verbose=1)
 
     # After training is done, we save the final weights.
