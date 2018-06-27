@@ -161,34 +161,34 @@ if __name__ == "__main__":
                     self.recent_action = action
                     return action
 
-            # warm up is over...
-            if self.training and random.random() < 0.15:
-                F = (random.random() - 0.5) * 2
-                T = (random.random() - 0.5) * 2
-                action = np.array([F, T])
-                action = np.reshape(action, self.recent_action.shape)
-                self.recent_action = action
-                return action
+            # # warm up is over...
+            # if self.training and random.random() < 0.15:
+            #     F = (random.random() - 0.5) * 2
+            #     T = (random.random() - 0.5) * 2
+            #     action = np.array([F, T])
+            #     action = np.reshape(action, self.recent_action.shape)
+            #     self.recent_action = action
+            #     return action
 
             # return the predicted one
-            print(action)
+            # print(action)
             return action
 
     random_process = OrnsteinUhlenbeckProcess(
-        size=2, theta=.15, mu=0., sigma=.3)
+        size=2, theta=.3, mu=0., sigma=.5)
     memory = SequentialMemory(limit=100000, window_length=1)
-    agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
-                      memory=memory, nb_steps_warmup_critic=5000, nb_steps_warmup_actor=5000,
+    agent = MyDDPG(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
+                      memory=memory, nb_steps_warmup_critic=1500, nb_steps_warmup_actor=1500,
                       gamma=.9, target_model_update=1e-3, processor=NpaProcessor(), random_process=random_process)
 
-    agent.compile([Adam(lr=1e-4), Adam(lr=1e-4)], metrics=['mae'])
+    agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
 
     # agent.load_weights('ddpg_{}_weights.h5f'.format("continous_dynamic"))
-    agent.fit(env, nb_steps=30000, visualize=False, verbose=2)
+    agent.fit(env, nb_steps=100000, visualize=False, verbose=1)
 
     # After training is done, we save the final weights.
     agent.save_weights('ddpg_{}_weights.h5f'.format(
         "continous_dynamic"), overwrite=True)
 
     # Finally, evaluate our algorithm for 5 episodes.
-    agent.test(env, nb_episodes=3, visualize=False, nb_max_episode_steps=2000)
+    agent.test(env, nb_episodes=200, visualize=False, nb_max_episode_steps=2000)

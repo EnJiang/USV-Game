@@ -315,9 +315,10 @@ class _MyContinueUSV_SmallMap(MyContinueUSV_SmallMap):
     
     def decision_algorithm(self):
         Action = self.action_class
-        angular_speed_value = self.last_action[0] * self.angular_speed_max
-        speed_value = self.last_action[1] * self.speed_max
+        angular_speed_value = self.last_action.F * self.angular_speed_max
+        speed_value = self.last_action.T * self.speed_max
         act = Action(False, False, angular_speed_value, speed_value)
+        # print(act)
         return act
 
 class ContinuousDynamicWorld(ContinuousWorld):
@@ -345,7 +346,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
 
         # USV友艇起始点,(注：初始点的设定要合法--即在map缩小ship.radius的范围)
         test_friendly_ship = _MyContinueUSV_SmallMap(
-            uid=0, x=2.50, y=0.50, env=test_map)
+            uid=0, x=2.50, y=0.5, env=test_map)
         test_friendly_ship.set_as_friendly()
         test_map.add_ship(test_friendly_ship)
         test_friendly_ship.set_usv_radius(0.1)
@@ -354,8 +355,8 @@ class ContinuousDynamicWorld(ContinuousWorld):
         # 静态矩形障碍物区域（注：初始位置的设定要合法，即在map缩小obs.radius的范围）
         obs1 = CircleObstacle(uid=0, x=0.85, y=1.00, radius=0.1, env=test_map)
         test_map.addobs(obs1)
-        obs2 = CircleObstacle(uid=1, x=1.50, y=0.50, radius=0.1, env=test_map)
-        test_map.addobs(obs2)
+        # obs2 = CircleObstacle(uid=1, x=1.50, y=0.50, radius=0.1, env=test_map)
+        # test_map.addobs(obs2)
         obs3 = CircleObstacle(uid=2, x=1.60, y=1.40, radius=0.1, env=test_map)
         test_map.addobs(obs3)
         obs4 = CircleObstacle(uid=3, x=1.10, y=1.80, radius=0.1, env=test_map)
@@ -421,7 +422,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
     def step(self, action_n, time):
         actor = self.policy_agents[0]
 
-        distance_punish_rate = 50
+        distance_punish_rate = 100
 
         if self.time > 2000:
             return [self.obs], [-150 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
@@ -455,7 +456,8 @@ class ContinuousDynamicWorld(ContinuousWorld):
             return [self.obs], [-150 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
 
         if self.game.arriveTarget:
-            return [self.obs], [1000 - self.time], [True], []
+            # return [self.obs], [10000 - self.time], [True], []
+            return [self.obs], [10000], [True], []
 
         if self.game.arriveObstacle:
             return [self.obs], [-300 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
