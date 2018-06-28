@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # actor.add(MaxPool2D(2, 2, data_format="channels_first"))
 
     # actor.add(Flatten())
-    actor.add(Dense(1024, input_shape=(4,)))
+    actor.add(Dense(1024, input_shape=(6,)))
     actor.add(Activation('relu'))
     actor.add(Dense(1024, kernel_regularizer=regularizers.l2(0.01)))
     actor.add(Activation('relu'))
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     action_input = Input(shape=(2,), name='action_input')
     observation_input = Input(
-        shape=(4,), name='observation_input')
+        shape=(6,), name='observation_input')
         # shape=(5, 100, 100), name='observation_input')
 
     # x = Conv2D(filters=64, kernel_size=(3, 3), activation="relu",
@@ -175,7 +175,7 @@ if __name__ == "__main__":
             return action
 
     random_process = OrnsteinUhlenbeckProcess(
-        size=2, theta=.3, mu=0., sigma=.5)
+        size=2, theta=.1, mu=0., sigma=.5)
     memory = SequentialMemory(limit=100000, window_length=1)
     agent = MyDDPG(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
                       memory=memory, nb_steps_warmup_critic=1500, nb_steps_warmup_actor=1500,
@@ -183,8 +183,8 @@ if __name__ == "__main__":
 
     agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])
 
-    agent.load_weights('ddpg_{}_weights.h5f'.format("continous_dynamic"))
-    agent.fit(env, nb_steps=100000, visualize=False, verbose=1)
+    # agent.load_weights('ddpg_{}_weights.h5f'.format("continous_dynamic"))
+    agent.fit(env, nb_steps=100000, visualize=False, verbose=2)
 
     # After training is done, we save the final weights.
     agent.save_weights('ddpg_{}_weights.h5f'.format(

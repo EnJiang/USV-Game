@@ -396,6 +396,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
         x, y = actor.coordinate()
         # print(x, y)
         x, y = (x - 50) / 50, (y - 50) / 50
+        dis = actor.getDistanceUSVTarget()
 
         # u_board = np.zeros(board.shape) + u
         # v_board = np.zeros(board.shape) + v
@@ -405,7 +406,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
         # data = (board, u_board, v_board, r_board, h_board)
         # feature = np.concatenate(data, axis=0)
         # feature = np.array([x, y, u, v, r, h])
-        feature = np.array([x, y])
+        feature = np.array([x, y, dis])
         self.last_feature = feature
         # print(feature.shape, feature)
         # exit()
@@ -413,6 +414,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
         # print("\n\n\n\n\n\n\n\n\n\n")
         # print(feature)
         # exit()
+        # print(feature)
         return feature
 
     @property
