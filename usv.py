@@ -609,8 +609,8 @@ class MyContinueUSV_SmallMap(BasicPlaneUSV):
         self.speed = 1
         self.radius = 1
 
-        self.angular_speed_max = 5
-        self.speed_max = 0.3
+        self.angular_speed_max = 3
+        self.speed_max = 0.1
 
     def getuid(self):
         return self.id

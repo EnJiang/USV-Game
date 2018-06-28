@@ -177,8 +177,8 @@ if __name__ == "__main__":
     random_process = OrnsteinUhlenbeckProcess(
         size=2, theta=.1, mu=0., sigma=.5)
     memory = SequentialMemory(limit=100000, window_length=1)
-    agent = MyDDPG(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
-                      memory=memory, nb_steps_warmup_critic=1500, nb_steps_warmup_actor=1500,
+    agent = DDPGAgent(nb_actions=2, actor=actor, critic=critic, critic_action_input=action_input,
+                      memory=memory, nb_steps_warmup_critic=50000, nb_steps_warmup_actor=50000,
                       gamma=.9, target_model_update=1e-3, processor=NpaProcessor(), random_process=random_process)
 
     agent.compile([Adam(lr=1e-3), Adam(lr=1e-3)], metrics=['mae'])

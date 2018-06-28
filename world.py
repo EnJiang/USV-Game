@@ -424,7 +424,7 @@ class ContinuousDynamicWorld(ContinuousWorld):
     def step(self, action_n, time):
         actor = self.policy_agents[0]
 
-        distance_punish_rate = 100
+        distance_punish_rate = 1000
 
         if self.time > 2000:
             return [self.obs], [-150 - actor.getDistanceUSVTarget() * distance_punish_rate], [True], []
