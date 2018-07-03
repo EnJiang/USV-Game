@@ -9,6 +9,10 @@ import numpy as np
 from math import sin, cos, pi
 
 
+import os
+from PIL import Image,ImageDraw
+import cv2
+
 # import matplotlib
 # matplotlib.use('TkAgg')
 # import matplotlib.pyplot as plt
@@ -751,6 +755,8 @@ class MyContinueGameModify(MyContinueGame):
 #测试DDPG网络的有效性：调3*3地图上，固定angular_speed和固定speed值
 #对应continue_obsmap_test_smallmap
 #CoutinuePyGame  	 CoutinueNoPyGame 	MyContinueUSV_SmallMap
+
+
 class CoutinuePyGame(MyContinueGameModify):
     """基本的GUI引擎, 使用pygame"""
 
@@ -761,69 +767,97 @@ class CoutinuePyGame(MyContinueGameModify):
 
         self.obsMoveBool = obsmove  # 默认false，障碍物不随机移动
 
-
     def gui_init(self):
         self.gui_screen = self.gui.display.set_mode((600, 600), 0, 32)
         self.gui.display.set_caption("USV")
 
 
+    # self.gui_screen是个surface对象，这里获取该对象（因为pygame.image,load得到的也是个Surface对象）
+    #转为PIL的Image，再转为cv2
+    def get_imgsurface(self):
+        tempSurface = self.gui_screen
 
-    def update(self):
+        string_image = pygame.image.tostring(tempSurface, "RGB", False)
+        im = Image.frombytes("RGB", (600, 600), string_image)
+
+        # 转化为PIL中的image对象--》转化为cv2中的对象，查看下isinstance(imgtest,np.ndarray)类型确认下
+        imgtest = cv2.cvtColor(np.asarray(im), cv2.COLOR_RGB2BGR)
+
+        return imgtest
+
+
+
+    def update(self, i):
         x_unit = 600.0 / self.map.width
         y_unit = 600.0 / self.map.height
 
         for event in pygame.event.get():
+
             if event.type == QUIT:
                 exit()
 
         self.gui_screen.fill((99, 184, 255))  # (255,255,255)白色填充
 
-
         for ship in self.map.friendly_ships:
             ship.move()
-            self.gui.draw.circle(self.gui_screen, (0,255,0), [int(ship.y * y_unit), int(ship.x * x_unit)],int(ship.radius * x_unit))
+            self.gui.draw.circle(self.gui_screen, (0, 255, 0), [int(ship.y * y_unit), int(ship.x * x_unit)],
+                                 int(ship.radius * x_unit))
 
             self.check_target()
             self.check_obstacle()
             self.check_legal()
 
-
         if self.obsMoveBool == False:
             for obstacle in self.map.obs:
                 # 画障碍物: 中心点 + radius
-                self.gui.draw.circle(self.gui_screen, (0, 0, 0), [int(obstacle.y*y_unit), int(obstacle.x*x_unit)], int(obstacle.radius*x_unit))
+                self.gui.draw.circle(self.gui_screen, (0, 0, 0), [int(obstacle.y * y_unit), int(obstacle.x * x_unit)],
+                                     int(obstacle.radius * x_unit))
             pass
 
         else:
-            #添加圆形障碍物的移动（需在其移动方法中添加对所随机移动的下一位置的合法性判断，若下一位置不合法则保持原位置）
+            # 添加圆形障碍物的移动（需在其移动方法中添加对所随机移动的下一位置的合法性判断，若下一位置不合法则保持原位置）
             for obstacle in self.map.obs:
-               obstacle.obsRandomMove()
-               # 画障碍物: 中心点 + radius
-               self.gui.draw.circle(self.gui_screen, (0, 0, 0), [int(obstacle.y*y_unit), int(obstacle.x*x_unit)], int(obstacle.radius*x_unit))
+                obstacle.obsRandomMove()
+                # 画障碍物: 中心点 + radius
+                self.gui.draw.circle(self.gui_screen, (0, 0, 0), [int(obstacle.y * y_unit), int(obstacle.x * x_unit)],
+                                     int(obstacle.radius * x_unit))
 
         # 画终点：中心点 + radius
         target_x, target_y = self.map.target_coordinate()
-        self.gui.draw.circle(self.gui_screen, (255, 0, 0), [int(target_y * y_unit), int(target_x * x_unit)],int(self.map.target_radius * x_unit))
+        self.gui.draw.circle(self.gui_screen, (255, 0, 0), [int(target_y * y_unit), int(target_x * x_unit)],
+                             int(self.map.target_radius * x_unit))
 
         # 更新
         self.gui.display.update()
+
+        fname = "%s.png" % str(i)
+        if i == 0:
+            cur_dir = os.getcwd()  # get current path
+            dir_new = os.path.join(cur_dir, 'img')
+            os.chdir(dir_new)
+
+        #pygame.image.save(self.gui_screen, fname)
 
 
 
     def start(self):
         i = 0
         while not self.is_game_over():
-            self.update()
+            self.update(i)
             i += 1
-            #print('-----')
-            sleep(0.1)
+
+            # imgg = self.get_imgsurface()
+            # print('cv2--', type(imgg))
+            # cv2.imwrite("test%s.png" % str(i), imgg)
+            #语句格式：cv2.imwrite(filename, img) filename: 保存文件的路径名;;img: 表示图像的numpy.ndarray对象
+
+
 
         print("更新次数：", i)
         print("game over!")
         print('是否到达终点：(0表示没，1表示到达)', self.arriveTarget)
         print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
         print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
-
 
         self.gui.display.set_caption("Game Over!")
         while True:
@@ -833,14 +867,38 @@ class CoutinuePyGame(MyContinueGameModify):
             self.gui.display.update()
 
 
+
+
+
+
 class CoutinueNoPyGame(MyContinueGameModify):
     """3*3小地图上，不使用可视化"""
 
+    def __init__(self, obsmove):
+        super(CoutinueNoPyGame, self).__init__(obsmove)
+        self.cv_img = None
 
-    def update(self):
+
+    #获取某次update之后的图(该图是cv2格式imread的格式)
+    def get_cv_img(self):
+        return self.cv_img
+
+
+    def update(self,i):
+        x_unit = 600.0 / self.map.width
+        y_unit = 600.0 / self.map.height
+
+
+        screen = Image.new("RGB", [600, 600], (99, 184, 255))
+        drawObject = ImageDraw.Draw(screen)
+
 
         for ship in self.map.friendly_ships:
             ship.move()
+
+            templeftup = (int(ship.y * y_unit)-int(ship.radius * x_unit), int(ship.x * x_unit)-int(ship.radius * x_unit))
+            temprightdown = (int(ship.y * y_unit)+int(ship.radius * x_unit), int(ship.x * x_unit)+int(ship.radius *x_unit))
+            drawObject.ellipse((templeftup[0],templeftup[1], temprightdown[0],temprightdown[1]), (0,255,0), (0,255,0))
 
             self.check_target()
             self.check_obstacle()
@@ -848,25 +906,61 @@ class CoutinueNoPyGame(MyContinueGameModify):
 
 
         if self.obsMoveBool == False:
+            for obstacle in self.map.obs:
+                templeftup_obs = (int(obstacle.y*y_unit)-int(obstacle.radius*x_unit), int(obstacle.x*x_unit)-int(obstacle.radius*x_unit))
+                temprightdown_obs = (int(obstacle.y*y_unit)+int(obstacle.radius*x_unit), int(obstacle.x*x_unit)+int(obstacle.radius*x_unit))
+                drawObject.ellipse((templeftup_obs[0],templeftup_obs[1], temprightdown_obs[0],temprightdown_obs[1]), (0, 0, 0), (0, 0, 0))
+
             pass
 
         else:
             #添加圆形障碍物的移动（需在其移动方法中添加对所随机移动的下一位置的合法性判断，若下一位置不合法则保持原位置）
             for obstacle in self.map.obs:
                obstacle.obsRandomMove()
+               templeftup_obs = (int(obstacle.y * y_unit) - int(obstacle.radius * x_unit),
+                                 int(obstacle.x * x_unit) - int(obstacle.radius * x_unit))
+               temprightdown_obs = (int(obstacle.y * y_unit) + int(obstacle.radius * x_unit),
+                                    int(obstacle.x * x_unit) + int(obstacle.radius * x_unit))
+               drawObject.ellipse((templeftup_obs[0],templeftup_obs[1], temprightdown_obs[0],temprightdown_obs[1]), (0, 0, 0), (0, 0, 0))
+
+
+
+        # 画终点：中心点 + radius
+        target_x, target_y = self.map.target_coordinate()
+        target_leftup = (int(target_y * y_unit)-self.map.target_radius * x_unit, int(target_x * x_unit)-self.map.target_radius * x_unit)
+        target_rightdown =  (int(target_y * y_unit)+self.map.target_radius * x_unit, int(target_x * x_unit)+self.map.target_radius * x_unit)
+        drawObject.ellipse((target_leftup[0],target_leftup[1], target_rightdown[0], target_rightdown[1]), (255, 0, 0),
+                           (255, 0, 0))
+
+        if i == 0:
+            cur_dir = os.getcwd()  # get current path
+            dir_new = os.path.join(cur_dir, 'img2')
+            os.chdir(dir_new)
+
+
+
+
+        imgtest = cv2.cvtColor(np.asarray(screen), cv2.COLOR_RGB2BGR)
+        self.cv_img = imgtest
+
+        #screen.save("%s.png" % str(i), 'png')
+        #语句格式：im.save('/Users/michael/thumbnail.jpg', 'jpeg')
 
 
 
     def start(self):
         i=0
         while not self.is_game_over():
-            self.update()
+            self.update(i)
             i += 1
+
+            #cv2.imwrite("test%s.png" % str(i), self.cv_img)
+
+
 
         print("更新次数：", i)
         print ("game over!")
         print('是否到达终点：(0表示没，1表示到达)',self.arriveTarget)
         print('是否碰到障碍物：(0表示没，1表示碰到)', self.arriveObstacle)
         print('是否走出区域：(0表示没，1表示走出去)', self.arriveUnlegal)
-
 

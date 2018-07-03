@@ -1,7 +1,7 @@
 #coding:utf-8
 
 
-from game import MyContinueGame,CoutinuePyGame,CoutinueNoPyGame
+from game import CoutinuePyGame,CoutinueNoPyGame
 from map_ import MyContinueObsMap
 from usv import MyContinueUSV_SmallMap
 from CircleObstacle import CircleObstacle

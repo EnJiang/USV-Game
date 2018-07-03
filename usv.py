@@ -596,6 +596,7 @@ class MyContinueUSV(BasicPlaneUSV):
 
 
 
+
 # 测试DDPG网络的有效性：调3*3地图上，固定angular_speed和固定speed值
 # 对应continue_obsmap_test_smallmap
 # CoutinuePyGame  	 CoutinueNoPyGame 	MyContinueUSV_SmallMap
@@ -609,8 +610,8 @@ class MyContinueUSV_SmallMap(BasicPlaneUSV):
         self.speed = 1
         self.radius = 1
 
-        self.angular_speed_max = 3
-        self.speed_max = 0.1
+        self.angular_speed_max = 5#3
+        self.speed_max = 0.3#0.1
 
     def getuid(self):
         return self.id
@@ -644,8 +645,16 @@ class MyContinueUSV_SmallMap(BasicPlaneUSV):
         self.speed = speedValue
 
     def update_coordinate(self):  # x轴负方向是0度，y正方向是90度，(按照左上角是0，0更新坐标),所以如下计算
-        self.y -= cos(pi * self.direction / 180) * self.speed
+        # self.y -= cos(pi * self.direction / 180) * self.speed
+        # self.x -= sin(pi * self.direction / 180) * self.speed
+
+
+        self.y += cos(pi * self.direction / 180) * self.speed
         self.x -= sin(pi * self.direction / 180) * self.speed
+        self.y = float("%.4f" % self.y)
+        self.x = float("%.4f" % self.x)
+
+
 
     def decision_algorithm(self):
         '''这种USV的action对象有四个属性:
@@ -659,13 +668,15 @@ class MyContinueUSV_SmallMap(BasicPlaneUSV):
 
 
         # 归一化后的
-        decision_angular_speed, decision_speed = 2.9 / 5, - 0.1 / 0.3
+        # decision_angular_speed, decision_speed = 2.9 / 5, - 0.1 / 0.3
+        decision_angular_speed, decision_speed = 2.9 / 5, 0.1 / 0.3
 
         angular_speed_value = decision_angular_speed * self.angular_speed_max
         speed_value = decision_speed * self.speed_max
 
         Action = self.action_class
-        act = Action(False, False, angular_speed_value, speed_value)
+        # act = Action(False, False, angular_speed_value, speed_value)
+        act = Action(False, True, angular_speed_value, speed_value)
 
         # act = self.pathGuide()
         # act = self.pathGuide2()
