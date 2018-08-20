@@ -610,8 +610,8 @@ class MyContinueUSV_SmallMap(BasicPlaneUSV):
         self.speed = 1
         self.radius = 1
 
-        self.angular_speed_max = 5#3
-        self.speed_max = 0.3#0.1
+        self.angular_speed_max = 6
+        self.speed_max = 0.3
 
     def getuid(self):
         return self.id
@@ -651,6 +651,7 @@ class MyContinueUSV_SmallMap(BasicPlaneUSV):
 
         self.y += cos(pi * self.direction / 180) * self.speed
         self.x -= sin(pi * self.direction / 180) * self.speed
+
         self.y = float("%.4f" % self.y)
         self.x = float("%.4f" % self.x)
 
@@ -669,7 +670,10 @@ class MyContinueUSV_SmallMap(BasicPlaneUSV):
 
         # 归一化后的
         # decision_angular_speed, decision_speed = 2.9 / 5, - 0.1 / 0.3
-        decision_angular_speed, decision_speed = 2.9 / 5, 0.1 / 0.3
+        decision_angular_speed, decision_speed = 5.8/6, 0.22 / 0.3
+        # 14步数：5.8/6, 0.22 / 0.3       #注意这里，要修改最大值限定：self.angular_speed_max = 6
+        # 17步数：4.85 / 5,  0.18 / 0.3
+        # 29步数：2.9 / 5,  0.1 / 0.3
 
         angular_speed_value = decision_angular_speed * self.angular_speed_max
         speed_value = decision_speed * self.speed_max
