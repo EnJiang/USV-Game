@@ -81,6 +81,9 @@ class StaticUSV(object):
         '''将本USV定义为友军(防守方)'''
         self.is_enemy = False
 
+    def set_as_target(self):
+        self.is_target=True
+
 class BasicPlaneUSV(StaticUSV):
     """基本平面USV, 这个USV可以在瞬间改变自己的角速度和速度, 转动后在对应方向上走动一帧时间*速度的距离"""
 
@@ -198,12 +201,27 @@ class MyUSV(OneStepUSV):
         super(MyUSV, self).__init__(uid, x, y, env)
 
 
-    def finda(self):
+    def getlocation(self,a):
+        #获取a的下标值
+        #index=self.id.index
+        if self.id==a:
+            xx=self.x
+            yy=self.y
+        #xx=self.x[a]
+        #yy=self.y[a]
+        location=(xx,yy)
+        
+        return location
+
+
+
+    def finda(self,policys):
         findamap = self.env.str2()  #A*方法的输入地图
 
         #findamap 与 diagram的图是镜像对称的，x与y是相反的
         diagram = GridWithWeights(len(findamap[0]),len(findamap))
         obstacles = []
+        friends=[]
         for kk in range(len(findamap)):
             for hh in range(len(findamap[kk])):
                 if findamap[kk][hh] == 'S':
@@ -214,9 +232,36 @@ class MyUSV(OneStepUSV):
                     startpoint = (hh, kk)
 
         diagram.walls = obstacles
+
+        #按照uid寻找友军集合
+        #id=self.id
+        '''
+        for i in self.id:
+            row=self.x[i]
+            col=self.y[i]
+            if findamap[row][col] == 'S':
+                friends.append(i)
+        '''
+
+        friends=[0,1,2,3]
+
+
+
+
+        #按照policy策略 寻找路径
+        for i in policys:
+            a=policys[i]
+            ss=self.getlocation(self,a[0])
+
+            if a[1] in friends:
+                came_from,cost_so_far=a_star_arround(diagram,start=ss, midpoint=self.getlocation(self,a[1]),goal=endpoint)
+            elif a[1] not in friends:
+                came_from,cost_so_far=a_star_search(diagram,start=ss,goal=endpoint)
+
+
         #print('draw_grid')
         #draw_grid(diagram, weights=2,start=startpoint, goal=endpoint)
-        came_from, cost_so_far = a_star_search(diagram, start = startpoint, goal = endpoint)
+        #came_from, cost_so_far = a_star_search(diagram, start = startpoint, goal = endpoint)
         #draw_grid(diagram, width=1, path=reconstruct_path(came_from, start=startpoint, goal=endpoint))
         pathtm = reconstruct_path(came_from, start=startpoint, goal=endpoint)
         '''print(pathtm)'''
@@ -256,6 +301,9 @@ class MyUSV(OneStepUSV):
         # print('使用A*算法的下一步：',next_action)
 
         return next_action
+
+#  find target
+
 
 
     def decision_algorithm(self):

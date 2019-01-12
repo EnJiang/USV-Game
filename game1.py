@@ -53,18 +53,27 @@ class MyGame(BasicGame):
 
     def update(self):
 
-            global recenv
-            global recaction
-            for ship in self.map.enemy_ships:
-                #if ship.uid == 0: recenv = ship.recordenv()
-                if  ship.is_enemy: recenv = ship.recordenv()
-                # if ship.uid == 0: recaction = ship.recordaction()
-                if  ship.is_enemy: recaction = ship.recordaction()
-                ship.move()
-                self.recordlist.append((recenv, recaction))
-                self.check_target()
-                self.check_obstacle()
-                self.check_legal()
+        # env = self.get_env()
+        # poclicy = self.get_policy(env)
+        policy = [(4,0), (5, 1), (6, 3), (9, 2),(7,99),(8,99),(10,99)]
+        # ... tell each ship who is its target
+        # for each ship:
+        #    ship.move()
+
+        # self.recordList.append((env, policy)
+
+        global recenv
+        global recaction
+        for ship in self.map.enemy_ships:
+            #if ship.uid == 0: recenv = ship.recordenv()
+            if  ship.is_enemy: recenv = ship.recordenv()
+            # if ship.uid == 0: recaction = ship.recordaction()
+            if  ship.is_enemy: recaction = ship.recordaction()
+            ship.move()
+            self.recordlist.append((recenv, recaction))
+            self.check_target()
+            self.check_obstacle()
+            self.check_legal()
 
 
 
