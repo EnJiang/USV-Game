@@ -96,16 +96,6 @@ class GridWithWeights(SquareGrid):
     def cost(self, from_node, to_node):
         return self.weights.get(to_node, 1)
 
-# diagram4 = GridWithWeights(10, 10)
-# diagram4.walls = [(1, 7), (1, 8), (2, 7), (2, 8), (3, 7), (3, 8)]
-# diagram4.weights = {loc: 5 for loc in [(3, 4), (3, 5), (4, 1), (4, 2),
-#                                        (4, 3), (4, 4), (4, 5), (4, 6),
-#                                        (4, 7), (4, 8), (5, 1), (5, 2),
-#                                        (5, 3), (5, 4), (5, 5), (5, 6),
-#                                        (5, 7), (5, 8), (6, 2), (6, 3),
-#                                        (6, 4), (6, 5), (6, 6), (6, 7),
-#                                        (7, 3), (7, 4), (7, 5)]}
-
 diagram4 = GridWithWeights(10, 10)
 diagram4.walls = [(1, 7), (1, 8), (2, 7), (2, 8), (3, 7), (3, 8)]
 diagram4.weights = {loc: 5 for loc in [(3, 4), (3, 5), (4, 1), (4, 2),
@@ -163,7 +153,7 @@ def reconstruct_path(came_from, start, goal):
     path = []
     while current != start:
         path.append(current)
-        print(path)
+        print(path, came_from)
         current = came_from[current]
     path.append(start) # optional
     path.reverse() # optional
@@ -180,9 +170,9 @@ def a_star_search(graph, start, goal):
     frontier = PriorityQueue()
     frontier.put(start, 0)
     came_from = {}
-    # cost_so_far = {}
+    cost_so_far = {}
     came_from[start] = None
-    # cost_so_far[start] = 0
+    cost_so_far[start] = 0
 
     while not frontier.empty():
         current = frontier.get()
@@ -191,24 +181,23 @@ def a_star_search(graph, start, goal):
             break
 
         for next in graph.neighbors(current):
-            # new_cost = cost_so_far[current] + graph.cost(current, next)
-            # if next not in cost_so_far or new_cost < cost_so_far[next]:
-            #     cost_so_far[next] = new_cost
-            #     priority = new_cost + heuristic(goal, next)
-            #     frontier.put(next, priority)
+            new_cost = cost_so_far[current] + graph.cost(current, next)
+            if next not in cost_so_far or new_cost < cost_so_far[next]:
+                cost_so_far[next] = new_cost
+                priority = new_cost + heuristic(goal, next)
+                frontier.put(next, priority)
                 came_from[next] = current
 
-    # return came_from, cost_so_far
-    return came_from
+    return came_from, cost_so_far
 
 #绕点函数，policy策略
 def a_star_arround(graph,start,midpoint,goal):
     frontier = PriorityQueue()
     frontier.put(start, 0)
     came_from = {}
-    # cost_so_far = {}
+    cost_so_far = {}
     came_from[start] = None
-    # cost_so_far[start] = 0
+    cost_so_far[start] = 0
 
     while not frontier.empty():
         current = frontier.get()
@@ -217,16 +206,32 @@ def a_star_arround(graph,start,midpoint,goal):
             break
 
         if midpoint in graph.neighbors(current):
-            points=graph.neighbors(current)-midpoint
+            print(type(graph.neighbors(current)))
+            NList = list(graph.neighbors(current))
+            Lmidpoint = list(midpoint)
+            Lpoints = set(NList)^set(Lmidpoint)
+            points = tuple(Lpoints)
+            print(type(points))
+
+            # points=graph.neighbors(current) - midpoint
 
             for next in points:
-                # new_cost = cost_so_far[current] + graph.cost(current, next)
-                # if next not in cost_so_far or new_cost < cost_so_far[next]:
-                #     cost_so_far[next] = new_cost
-                #     priority = new_cost + heuristic(goal, next)
-                #     frontier.put(next, priority)
+                new_cost = cost_so_far[current] + graph.cost(current, next)
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far[next] = new_cost
+                    priority = new_cost + heuristic(goal, next)
+                    frontier.put(next, priority)
                     came_from[next] = current
 
-    # return came_from, cost_so_far
-    return came_from
+        else:
+            for next in graph.neighbors(current):
+                new_cost = cost_so_far[current] + graph.cost(current, next)
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far[next] = new_cost
+                    priority = new_cost + heuristic(goal, next)
+                    frontier.put(next, priority)
+                    came_from[next] = current
+
+    return came_from, cost_so_far
+
 

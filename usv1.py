@@ -255,7 +255,8 @@ class MyUSV(OneStepUSV):
 
             if a[1] in friends:
                 came_from,cost_so_far=a_star_arround(diagram,start=ss, midpoint=self.getlocation(self,a[1]),goal=endpoint)
-            elif a[1] not in friends:
+            #elif a[1] not in friends:
+            else:
                 came_from,cost_so_far=a_star_search(diagram,start=ss,goal=endpoint)
 
 

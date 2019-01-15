@@ -67,11 +67,11 @@ class MyUSV(OneStepUSV):
             ss = self.getlocation(a[0])
 
             if a[1] in friends:
-                came_from = a_star_arround(graph=diagram, start=ss, midpoint=self.getlocation(a[1]), goal=endpoint)
+                came_from, cost_so_far= a_star_arround(graph=diagram, start=ss, midpoint=self.getlocation(a[1]), goal=endpoint)
                 print(came_from)
 
             else:
-                came_from = a_star_search(graph=diagram, start=ss, goal=endpoint)
+                came_from, cost_so_far= a_star_search(graph=diagram, start=ss, goal=endpoint)
                 print("2="+came_from)
 
         # print('draw_grid')
